@@ -1,5 +1,7 @@
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 #include <iostream>
+#include "fonctions_SDL.h"
 
 using namespace std;
 
@@ -43,4 +45,19 @@ SDL_Rect hitbox_update(SDL_Rect rec) {
     hit.h = rec.h-rec.h*2/5;
 
     return hit;
+}
+
+SDL_Texture* charger_texte(const char* message, SDL_Renderer* renderer, TTF_Font* font, SDL_Color color) {
+
+    SDL_Surface* text = TTF_RenderText_Solid(font, message, color);
+
+    if(!text)
+    {
+        cout << "Erreur de chargement de " << message <<" : " << SDL_GetError() << endl;
+        exit(EXIT_FAILURE);
+    }
+
+    SDL_Texture* monTexte = SDL_CreateTextureFromSurface(renderer,text);
+
+    return monTexte;
 }

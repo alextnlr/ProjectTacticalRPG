@@ -1,8 +1,10 @@
 #include <iostream>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#include <vector>
 #include "fonctions_fichier.h"
 #include "fonctions_SDL.h"
+#include "personnage.h"
 
 using namespace std;
 
@@ -12,10 +14,12 @@ int main(int argc, char** argv)
     SDL_Event evenements;
     int terminer = 0;
     if(SDL_Init(SDL_INIT_VIDEO) < 0) {
-        printf("Erreur init SDL: %s",SDL_GetError());
+        cout << "Erreur init SDL: " << SDL_GetError() << endl;
         SDL_Quit();
         return EXIT_FAILURE;
     }
+
+    TTF_Init();
 
     //Creation de fenetre
     int lig = 0;
@@ -23,9 +27,9 @@ int main(int argc, char** argv)
     taille_fichier("terrain.txt", &lig, &col);
     int width = col*64;
     int height = lig*64;
-    fenetre = SDL_CreateWindow("Jeu",SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,width,height,SDL_WINDOW_RESIZABLE);
+    fenetre = SDL_CreateWindow("MageBattle",SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,width,height,SDL_WINDOW_RESIZABLE);
     if(fenetre == NULL) {
-        printf("Erreur creation fenetre: %s",SDL_GetError());
+        cout << "Erreur creation fenetre: " << SDL_GetError() << endl;
         SDL_Quit();
         return EXIT_FAILURE;
     }
@@ -38,28 +42,17 @@ int main(int argc, char** argv)
     SDL_Texture* fond = charger_image("fond.bmp",ecran);
 
     //Charger Image avec transparence
-    Uint8 r = 0, g = 255, b = 255;
-    SDL_Texture* obj = charger_image_transparente("sprites.bmp",ecran, r, g, b);
+    //Uint8 r = 0, g = 255, b = 255;
+    //SDL_Texture* obj = charger_image_transparente("sprites.bmp",ecran, r, g, b);
 
-    int objetW;
-    int objetH;
-    SDL_QueryTexture(obj, NULL, NULL, &objetW, &objetH);
-
-
-    SDL_Rect SrcR[6];
-    for(unsigned i = 0 ; i < 6 ; i++) {
-        SrcR[i].x = i > 2 ? (i-3)*objetW/3 : i*objetW/3;
-        SrcR[i].y = i > 2 ? objetH/2 : 0;
-        SrcR[i].w = objetW/3;
-        SrcR[i].h = objetH/2;
+    //Texte ttf
+    TTF_Font* fontText = TTF_OpenFont("prstartk.ttf",20);
+    if(!fontText) {
+        cout << "Erreur du chargement de la font" << endl;
     }
 
-    SDL_Rect DestR;
-    DestR.x = 0;
-    DestR.y = 0;
-    DestR.w = 64;
-    DestR.h = 84;
 
+    //Option Bloc
     SDL_Texture* bloc = charger_image("pavage.bmp",ecran);
 
     int blocW, blocH;
@@ -79,35 +72,52 @@ int main(int argc, char** argv)
     posBloc.w = 64;
     posBloc.h = 64;
 
-    //Tableau Sprites
 
+    //Tableau Sprites
     char** tab = lire_fichier("terrain.txt");
 
     int tabInt[lig][col];
-    for(unsigned i = 0 ; i < lig ; i++) {
-        for(unsigned j = 0 ; j < col ; j++) {
-            char stTemp[2];
-            sprintf(stTemp,"%c",tab[i][j]);
-            tabInt[i][j] = atoi(stTemp);
+    for(int i = 0 ; i < lig ; i++) {
+        for(int j = 0 ; j < col ; j++) {
+            tabInt[i][j] = tab[i][j] - '0';
         }
     }
 
-    SDL_Rect Hitbox;
-    Hitbox = hitbox_update(DestR);
+    /*SDL_Rect Hitbox;
+    Hitbox = hitbox_update(DestR);*/
+
+    //Test Objets
+
+    Uint8 r = 128, g = 160, b = 128;
+    SDL_Texture* mageTexture = charger_image_transparente("MageM.bmp",ecran, r, g, b);
+
+    vector<Personnage> ennemis;
+    ennemis.push_back(Personnage(30, 7, "Thierry", 8, 4, mageTexture));
+    ennemis.push_back(Personnage(40, 11, "Caro", 6, 8, mageTexture));
+
+    vector<Personnage> allies;
+    allies.push_back(Personnage(60, 5, "Michel", mageTexture));
+    allies.push_back(Personnage(40, 10, "Jean", 2, 2, mageTexture));
+
 
     int xmouse;
     int ymouse;
 
-    int TICK_INTERVAL = 120;
+    bool found = false;
+
+    int select = 0;
+    allies[select].selectPerso();
+
+    int TICK_INTERVAL = 60;
 
     int frameNum = SDL_GetTicks() / TICK_INTERVAL;
     int physical_frame = 1;
-    int mouvement = 0;
+    bool mouvement = 0;
     int direction = 0;
+    int cptTime = 0;
+    bool wait = false;
 
-    int avance = 5;
-
-    int anim = 0;
+    //int anim = 0;
 
     //Boucle principale
     while(!terminer) {
@@ -121,15 +131,15 @@ int main(int argc, char** argv)
           physical_frame = 0;
         }
 
-        for(unsigned i = 0 ; i < lig ; i++) {
+        for(int i = 0 ; i < lig ; i++) {
             posBloc.y = i*64;
-            for(unsigned j = 0 ; j < col ; j++) {
+            for(int j = 0 ; j < col ; j++) {
                 posBloc.x = j*64;
                 SDL_RenderCopy(ecran, bloc, &coupBloc[tabInt[i][j]], &posBloc);
             }
         }
 
-        if(physical_frame && mouvement) {
+        /*if(physical_frame && mouvement) {
             anim ++;
             if(anim > 2) { anim = 0; }
         }
@@ -138,9 +148,49 @@ int main(int argc, char** argv)
             SDL_RenderCopy(ecran, obj, &SrcR[anim+3*direction], &DestR);
         } else {
             SDL_RenderCopy(ecran, obj, &SrcR[1+3*direction], &DestR);
+        }*/
+
+        //SDL_RenderCopy(ecran, texte, NULL, &texte_pos);
+
+        for(int i = 0 ; i < ennemis.size() ; i++)
+        {
+            ennemis[i].afficherPersoBarre(ecran, physical_frame);
         }
 
-        mouvement = 0;
+        for(int i = 0 ; i < allies.size() ; i++)
+        {
+            allies[i].afficherPersoBarre(ecran, physical_frame);
+        }
+
+        for(int i = 0 ; i < ennemis.size() ; i++)
+        {
+            ennemis[i].afficherDegats(ecran, fontText);
+        }
+
+        //mouvement = 0;
+
+        if(select != -1)
+        {
+            if(allies[select].getAgro())
+            {
+                allies[select].afficherSelect(ecran);
+            }
+            if(allies[select].getAgro())
+            {
+                allies[select].setState(5);
+            } else if(mouvement)
+            {
+                allies[select].setState(direction+1);
+            } else
+            {
+                allies[select].setState(0);
+            }
+        }
+
+        if(physical_frame && frameNum%2) {
+                mouvement = false;
+                wait = false;
+        }
 
         SDL_PollEvent(&evenements);
         switch(evenements.type)
@@ -154,37 +204,81 @@ int main(int argc, char** argv)
                     case SDLK_q:
                         terminer = 1; break;
                     case SDLK_UP:
-                        DestR.y -= avance;
-                        Hitbox = hitbox_update(DestR);
-                        if(Hitbox.y < 0) {DestR.y += avance;}
-                        if(tabInt[Hitbox.y/64][Hitbox.x/64] != 0 || tabInt[Hitbox.y/64][(Hitbox.x+Hitbox.w)/64] != 0) {DestR.y += avance;}
-                        mouvement = 1;
+                        if(physical_frame && !wait && select != -1)
+                        {
+                            if(allies[select].getAgro())
+                            {
+                                allies[select].select(0);
+                            } else {
+                                allies[select].walk(0);
+                                allies[select].setState(0);
+                                direction = 0;
+                                mouvement = true;
+                                wait = true;
+                            }
+                        }
                         break;
                     case SDLK_DOWN:
-                        DestR.y += avance;
-                        Hitbox = hitbox_update(DestR);
-                        if(Hitbox.y+Hitbox.h > height) {DestR.y -= avance;}
-                        if(tabInt[(Hitbox.y+Hitbox.h)/64][(Hitbox.x)/64] != 0 || tabInt[(Hitbox.y+Hitbox.h)/64][(Hitbox.x+Hitbox.w)/64] != 0)
-                            {DestR.y -= avance;}
-                        mouvement = 1;
+                        if(physical_frame && !wait && select != -1)
+                        {
+                            if(allies[select].getAgro())
+                            {
+                                allies[select].select(1);
+                            } else {
+                                allies[select].walk(1);
+                                allies[select].setState(1);
+                                direction = 1;
+                                mouvement = true;
+                                wait = true;
+                            }
+                        }
                         break;
                     case SDLK_RIGHT:
-                        DestR.x += avance;
-                        Hitbox = hitbox_update(DestR);
-                        if(Hitbox.x+Hitbox.w > width) {DestR.x -= avance;}
-                        if(tabInt[Hitbox.y/64][(Hitbox.x+Hitbox.w)/64] != 0 || tabInt[(Hitbox.y+Hitbox.h)/64][(Hitbox.x+Hitbox.w)/64] != 0)
-                            {DestR.x -= avance;}
-                        mouvement = 1;
-                        direction = 0;
+                        if(physical_frame && !wait && select != -1)
+                        {
+                            if(allies[select].getAgro())
+                            {
+                                allies[select].select(2);
+                            } else {
+                                allies[select].walk(2);
+                                allies[select].setState(2);
+                                direction = 2;
+                                mouvement = true;
+                                wait = true;
+                            }
+                        }
                         break;
                     case SDLK_LEFT:
-                        DestR.x -= avance;
-                        Hitbox = hitbox_update(DestR);
-                        if(Hitbox.x < 0) {DestR.x += avance;}
-                        if(tabInt[Hitbox.y/64][Hitbox.x/64] != 0 || tabInt[(Hitbox.y+Hitbox.h)/64][Hitbox.x/64] != 0)
-                            {DestR.x += avance;}
-                        mouvement = 1;
-                        direction = 1;
+                        if(physical_frame && !wait && select != -1)
+                        {
+                            if(allies[select].getAgro())
+                            {
+                                allies[select].select(3);
+                            } else {
+                                allies[select].walk(3);
+                                allies[select].setState(3);
+                                direction = 3;
+                                mouvement = true;
+                                wait = true;
+                            }
+                        }
+                        break;
+                    case SDLK_SPACE:
+                        if(select != -1)
+                        {
+                            if(!allies[select].getAgro())
+                            {
+                                allies[select].switchMode();
+                                allies[select].select(2);
+                                allies[select].setState(5);
+                            } else {
+                                for(int i = 0 ; i < ennemis.size() ; i++)
+                                {
+                                    allies[select].attaquer(ennemis[i]);
+                                }
+                                allies[select].switchMode();
+                            }
+                        }
                         break;
                     case SDLK_s:
                         ecrire_fichier("newMap.txt",tab,lig,col);
@@ -196,17 +290,25 @@ int main(int argc, char** argv)
                     {
                         case SDL_BUTTON_LEFT:
                             SDL_GetMouseState(&xmouse,&ymouse);
-                            if(tabInt[ymouse/64][xmouse/64] == 0) {
-                                tabInt[ymouse/64][xmouse/64] = 4;
-                                tab[ymouse/64][xmouse/64] = '4';
+                            found = false;
+                            for(int i = 0 ; i < allies.size() ; i++)
+                            {
+                                if(xmouse/64 == allies[i].getCoord().x/64 && ymouse/64 == allies[i].getCoord().y/64)
+                                {
+                                    select = i;
+                                    found = true;
+                                }
+                                allies[i].deselectPerso();
+                            }
+                            if(found) {
+                                allies[select].selectPerso();
+                            } else {
+                                select = -1;
                             }
                             break;
                         case SDL_BUTTON_RIGHT:
                             SDL_GetMouseState(&xmouse,&ymouse);
-                            if(tabInt[ymouse/64][xmouse/64] == 4) {
-                                tabInt[ymouse/64][xmouse/64] = 0;
-                                tab[ymouse/64][xmouse/64] = '0';
-                            }
+                            ennemis[0].deplacer(xmouse/64, ymouse/64);
                             break;
                     }
                 }
@@ -219,8 +321,10 @@ int main(int argc, char** argv)
     desallouer_tab_2D(tab, lig);
 
     //Quitter SDL
+    TTF_CloseFont(fontText);
+    TTF_Quit();
+    SDL_DestroyTexture(mageTexture);
     SDL_DestroyTexture(fond);
-    SDL_DestroyTexture(obj);
     SDL_DestroyRenderer(ecran);
     SDL_DestroyWindow(fenetre);
     SDL_Quit();

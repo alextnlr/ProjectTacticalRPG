@@ -28,7 +28,7 @@ Personnage::Personnage(SDL_Texture* texture)
 
 }
 
-Personnage::Personnage(int pv, int dgt, std::string nom, SDL_Texture* texture)
+Personnage::Personnage(int pv, int dgt, char* nom, SDL_Texture* texture)
 {
     m_vieMax = pv;
     m_vie = m_vieMax;
@@ -48,7 +48,7 @@ Personnage::Personnage(int pv, int dgt, std::string nom, SDL_Texture* texture)
     m_state = 0;
 }
 
-Personnage::Personnage(int pv, int dgt, std::string nom, int x, int y, SDL_Texture* texture)
+Personnage::Personnage(int pv, int dgt, char* nom, int x, int y, SDL_Texture* texture)
 {
     m_vieMax = pv;
     m_vie = m_vieMax;
@@ -295,27 +295,6 @@ void Personnage::afficherPersoBarre(SDL_Renderer* renderer, bool phy_frame)
             SDL_RenderDrawRect(renderer, &rect);
         }
 
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-        SDL_Rect UnderBar;
-        UnderBar.x = m_pos[0]*64+8;
-        UnderBar.y = m_pos[1]*64 + 5 +64;
-        UnderBar.w = 64-16;
-        UnderBar.h = 8;
-        SDL_RenderFillRect(renderer, &UnderBar);
-
-        SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
-        SDL_Rect Bar;
-        Bar.x = UnderBar.x;
-        Bar.y = UnderBar.y;
-        Bar.w = UnderBar.w*m_vie/m_vieMax;
-        Bar.h = UnderBar.h;
-        SDL_RenderFillRect(renderer, &Bar);
-
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-        SDL_RenderDrawRect(renderer, &UnderBar);
-
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-
         if(phy_frame)
         {
             m_frameIdle ++;
@@ -331,6 +310,70 @@ void Personnage::afficherPersoBarre(SDL_Renderer* renderer, bool phy_frame)
 void Personnage::setState(int state)
 {
     m_state = state;
+}
+
+void Personnage::afficherInfos(SDL_Renderer* renderer, TTF_Font* font, bool pos)
+{
+    SDL_SetRenderDrawColor(renderer, 160, 82, 45, 255);
+    SDL_Rect rect;
+    rect.x = pos*18*64;
+    rect.y = 0;
+    rect.w = 256;
+    rect.h = 128;
+    SDL_RenderFillRect(renderer, &rect);
+    SDL_SetRenderDrawColor(renderer, 139, 69, 19, 255);
+    SDL_RenderDrawRect(renderer, &rect);
+
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+
+    SDL_Color color = {0,0,0,0};
+    char hp[10];
+    sprintf(hp,"%i / %i",m_vie, m_vieMax);
+    SDL_Texture* hpStr = charger_texte(hp, renderer, font, color);
+    int texteW, texteH;
+    SDL_QueryTexture(hpStr, NULL, NULL, &texteW, &texteH);
+
+    SDL_Rect texte_pos;
+    texte_pos.x = rect.x+(rect.w-texteW)/2;
+    texte_pos.y = 60;
+    texte_pos.w = texteW;
+    texte_pos.h = texteH;
+
+    SDL_RenderCopy(renderer, hpStr, NULL, &texte_pos);
+
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    SDL_Rect UnderBar;
+    UnderBar.w = rect.w*2/3;
+    UnderBar.h = 20;
+    UnderBar.x = rect.x+(rect.w-UnderBar.w)/2;
+    UnderBar.y = 90;
+    SDL_RenderFillRect(renderer, &UnderBar);
+
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    SDL_RenderDrawRect(renderer, &UnderBar);
+
+    SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+    SDL_Rect Bar;
+    Bar.x = UnderBar.x;
+    Bar.y = UnderBar.y;
+    Bar.w = UnderBar.w*m_vie/m_vieMax;
+    Bar.h = UnderBar.h;
+    SDL_RenderFillRect(renderer, &Bar);
+
+    SDL_Texture* nom = charger_texte(m_nom, renderer, font, color);
+    SDL_QueryTexture(nom, NULL, NULL, &texteW, &texteH);
+
+    SDL_Rect nom_pos;
+    nom_pos.x = rect.x+(rect.w-texteW)/2;
+    nom_pos.y = 25;
+    nom_pos.w = texteW;
+    nom_pos.h = texteH;
+
+    SDL_RenderCopy(renderer, nom, NULL, &nom_pos);
+
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+
+
 }
 
 Personnage::~Personnage()

@@ -9,8 +9,8 @@ class Personnage
 {
 public:
     Personnage(SDL_Texture* texture);
-    Personnage(int pv, int dgt, std::string nom, SDL_Texture* texture);
-    Personnage(int pv, int dgt, std::string nom, int x, int y, SDL_Texture* texture);
+    Personnage(int pv, int dgt, char* nom, SDL_Texture* texture);
+    Personnage(int pv, int dgt, char* nom, int x, int y, SDL_Texture* texture);
     Personnage(Personnage const& copie);
     void recevoirDegats(int nbDegats);
     bool attaquer(Personnage &cible);
@@ -33,13 +33,14 @@ public:
     void deselectPerso();
     void afficherPersoBarre(SDL_Renderer* renderer, bool phy_frame);
     void setState(int state);
+    void afficherInfos(SDL_Renderer* renderer, TTF_Font* font, bool gauche);
     ~Personnage();
 
 private:
     int m_vie;
     int m_vieMax;
     int m_ptsMagie;
-    std::string m_nom;
+    char* m_nom;
     int m_pos[2];
     int m_degats;
     bool m_agro;

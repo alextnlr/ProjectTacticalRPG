@@ -46,7 +46,7 @@ int main(int argc, char** argv)
     //SDL_Texture* obj = charger_image_transparente("sprites.bmp",ecran, r, g, b);
 
     //Texte ttf
-    TTF_Font* fontText = TTF_OpenFont("prstartk.ttf",20);
+    TTF_Font* fontText = TTF_OpenFont("prstartk.ttf",16);
     if(!fontText) {
         cout << "Erreur du chargement de la font" << endl;
     }
@@ -90,10 +90,11 @@ int main(int argc, char** argv)
 
     Uint8 r = 128, g = 160, b = 128;
     SDL_Texture* mageTexture = charger_image_transparente("MageM.bmp",ecran, r, g, b);
+    SDL_Texture* mageTextureEvil = charger_image_transparente("MageMEvil.bmp",ecran, r, g, b);
 
     vector<Personnage> ennemis;
-    ennemis.push_back(Personnage(30, 7, "Thierry", 8, 4, mageTexture));
-    ennemis.push_back(Personnage(40, 11, "Caro", 6, 8, mageTexture));
+    ennemis.push_back(Personnage(30, 7, "Thierry", 8, 4, mageTextureEvil));
+    ennemis.push_back(Personnage(40, 11, "Caro", 6, 8, mageTextureEvil));
 
     vector<Personnage> allies;
     allies.push_back(Personnage(60, 5, "Michel", mageTexture));
@@ -105,7 +106,7 @@ int main(int argc, char** argv)
 
     bool found = false;
 
-    int select = 0;
+    int select = -1;
     allies[select].selectPerso();
 
     int TICK_INTERVAL = 60;
@@ -130,6 +131,8 @@ int main(int argc, char** argv)
         } else {
           physical_frame = 0;
         }
+
+        SDL_GetMouseState(&xmouse,&ymouse);
 
         for(int i = 0 ; i < lig ; i++) {
             posBloc.y = i*64;
@@ -184,6 +187,48 @@ int main(int argc, char** argv)
             } else
             {
                 allies[select].setState(0);
+            }
+        }
+
+        if(select == -1)
+        {
+            for(int i = 0 ; i < allies.size() ; i++)
+            {
+                if(xmouse/64 == allies[i].getCoord().x/64 && ymouse/64 == allies[i].getCoord().y/64)
+                {
+                    if(xmouse < 256 && ymouse < 128)
+                    {
+                        allies[i].afficherInfos(ecran, fontText, 1);
+                    } else {
+                        allies[i].afficherInfos(ecran, fontText, 0);
+                    }
+                }
+            }
+            for(int i = 0 ; i < ennemis.size() ; i++)
+            {
+                if(xmouse/64 == ennemis[i].getCoord().x/64 && ymouse/64 == ennemis[i].getCoord().y/64)
+                {
+                    if(xmouse < 256 && ymouse < 128)
+                    {
+                        ennemis[i].afficherInfos(ecran, fontText, 1);
+                    } else {
+                        ennemis[i].afficherInfos(ecran, fontText, 0);
+                    }
+                }
+            }
+        }
+        else
+        {
+            if(xmouse < 256 && ymouse < 128)
+            {
+                allies[select].afficherInfos(ecran, fontText, 1);
+            } else {
+                if(allies[select].getCoord().x <= 256 && allies[select].getCoord().y <= 128)
+                {
+                    allies[select].afficherInfos(ecran, fontText, 1);
+                } else {
+                    allies[select].afficherInfos(ecran, fontText, 0);
+                }
             }
         }
 
@@ -289,7 +334,6 @@ int main(int argc, char** argv)
                     switch(evenements.button.button)
                     {
                         case SDL_BUTTON_LEFT:
-                            SDL_GetMouseState(&xmouse,&ymouse);
                             found = false;
                             for(int i = 0 ; i < allies.size() ; i++)
                             {
@@ -307,7 +351,6 @@ int main(int argc, char** argv)
                             }
                             break;
                         case SDL_BUTTON_RIGHT:
-                            SDL_GetMouseState(&xmouse,&ymouse);
                             ennemis[0].deplacer(xmouse/64, ymouse/64);
                             break;
                     }
@@ -324,6 +367,7 @@ int main(int argc, char** argv)
     TTF_CloseFont(fontText);
     TTF_Quit();
     SDL_DestroyTexture(mageTexture);
+    SDL_DestroyTexture(mageTextureEvil);
     SDL_DestroyTexture(fond);
     SDL_DestroyRenderer(ecran);
     SDL_DestroyWindow(fenetre);

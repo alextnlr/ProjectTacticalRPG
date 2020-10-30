@@ -27,7 +27,41 @@ char** allouer_tab_2D(int n, int m) {
     return tableau;
 }
 
+int** allouer_tab_2DInt(int n, int m)
+{
+    int** tableau = new int*[n];
+    if(tableau == nullptr) {
+        cout << "Echec de l'allocation" << endl;
+        exit(EXIT_FAILURE);
+    }
+
+    for (unsigned i = 0 ; i < n ; i++) {
+        tableau[i] = new int[m];
+        if(tableau[i]==nullptr) {
+            cout << "Echec de l'allocation\n" << endl;
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    for(unsigned i = 0 ; i < n ; i++) {
+        for(unsigned j = 0 ; j < m ; j++) {
+            tableau[i][j] = ' ';
+        }
+    }
+
+    return tableau;
+}
+
 void desallouer_tab_2D(char** tab, int n) {
+
+    for(unsigned i = 0 ; i < n ; i++) {
+        delete[] tab[i];
+    }
+
+    delete [] tab;
+}
+
+void desallouer_tab_2D(int** tab, int n) {
 
     for(unsigned i = 0 ; i < n ; i++) {
         delete[] tab[i];
@@ -128,4 +162,15 @@ void ecrire_fichier(const char* nomFichier, char** tab, int n, int m) {
         fputc('\n',fichier);
     }
 
+}
+
+int** transfoCharToInt(char** tabChar, int lig, int col)
+{
+    int** tabInt = allouer_tab_2DInt(lig, col);
+    for(int i = 0 ; i < lig ; i++) {
+        for(int j = 0 ; j < col ; j++) {
+            tabInt[i][j] = tabChar[i][j] - '0';
+        }
+    }
+    return tabInt;
 }

@@ -3,7 +3,6 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
-#include <string>
 
 class Personnage
 {
@@ -28,13 +27,11 @@ public:
     bool getHurt() const;
     void nonHurt();
     void switchMode();
-    bool getSelect() const;
-    void selectPerso();
-    void deselectPerso();
     void afficherPersoBarre(SDL_Renderer* renderer, bool phy_frame);
+    void afficherRectSel(SDL_Renderer* renderer);
     void setState(int state);
     void afficherInfos(SDL_Renderer* renderer, TTF_Font* font, bool gauche);
-    ~Personnage();
+    void desallouer();
 
 private:
     int m_vie;

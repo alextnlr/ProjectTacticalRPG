@@ -272,7 +272,7 @@ void Personnage::afficherPersoBarre(SDL_Renderer* renderer, bool phy_frame)
     if(estVivant())
     {
         SDL_Rect Frame;
-        int trueFrame = m_frameIdle/5;
+        int trueFrame = m_frameIdle/3;
         Frame.x = 31*trueFrame;
         Frame.y = 31*m_state;
         Frame.w = 31;
@@ -283,7 +283,7 @@ void Personnage::afficherPersoBarre(SDL_Renderer* renderer, bool phy_frame)
         if(phy_frame)
         {
             m_frameIdle ++;
-            if(m_frameIdle >= 4*5)
+            if(m_frameIdle >= 4*3)
             {
                 m_frameIdle = 0;
             }

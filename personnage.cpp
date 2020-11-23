@@ -6,32 +6,11 @@
 
 using namespace std;
 
-Personnage::Personnage(SDL_Texture* texture)
-{
-    m_vieMax = 100;
-    m_vie = m_vieMax;
-    m_degats = 10;
-    m_ptsMagie = 100;
-    m_nom = "Michel";
-    m_pos[0] = 0;
-    m_pos[1] = 0;
-    m_agro = false;
-    m_cible[0] = 0;
-    m_cible[1] = 0;
-    m_hurt = false;
-    m_dgtAnim = 0;
-    m_select = false;
-    m_frameIdle = 0;
-    m_texture = texture;
-    m_state = 0;
-
-}
-
-Personnage::Personnage(int pv, int dgt, char* nom, SDL_Texture* texture)
+Personnage::Personnage(int pv, Spell spell, char* nom, SDL_Texture* texture)
 {
     m_vieMax = pv;
     m_vie = m_vieMax;
-    m_degats = dgt;
+    m_spell = spell;
     m_ptsMagie = 100;
     m_nom = nom;
     m_pos[0] = 0;
@@ -45,13 +24,15 @@ Personnage::Personnage(int pv, int dgt, char* nom, SDL_Texture* texture)
     m_frameIdle = 0;
     m_texture = texture;
     m_state = 0;
+    m_mouvement = false;
+    m_wait = false;
 }
 
-Personnage::Personnage(int pv, int dgt, char* nom, int x, int y, SDL_Texture* texture)
+Personnage::Personnage(int pv, Spell spell, char* nom, int x, int y, SDL_Texture* texture)
 {
     m_vieMax = pv;
     m_vie = m_vieMax;
-    m_degats = dgt;
+    m_spell = spell;
     m_ptsMagie = 100;
     m_nom = nom;
     m_pos[0] = x;
@@ -65,13 +46,15 @@ Personnage::Personnage(int pv, int dgt, char* nom, int x, int y, SDL_Texture* te
     m_frameIdle = 0;
     m_texture = texture;
     m_state = 0;
+    m_mouvement = false;
+    m_wait = false;
 }
 
 Personnage::Personnage(Personnage const& copie)
 {
     m_vie = copie.m_vie;
     m_vieMax = copie.m_vieMax;
-    m_degats = copie.m_degats;
+    m_spell = copie.m_spell;
     m_ptsMagie = copie.m_ptsMagie;
     m_nom = copie.m_nom;
     m_pos[0] = copie.m_pos[0];
@@ -85,6 +68,8 @@ Personnage::Personnage(Personnage const& copie)
     m_frameIdle = 0;
     m_texture = copie.m_texture;
     m_state = 0;
+    m_mouvement = false;
+    m_wait = false;
 }
 
 void Personnage::recevoirDegats(int nbDegats)
@@ -103,7 +88,7 @@ bool Personnage::attaquer(Personnage &cible)
 {
     if(m_cible[0] == cible.m_pos[0] && m_cible[1] == cible.m_pos[1])
     {
-        cible.recevoirDegats(m_degats);
+        cible.recevoirDegats(m_spell.getDegats());
         return true;
     } else {
         return false;
@@ -144,21 +129,37 @@ void Personnage::deplacer(int x, int y)
     m_pos[1] = y;
 }
 
-void Personnage::walk(int direction)
+void Personnage::walk(int direction, int** mapTerrain, int lig, int col)
 {
     switch(direction)
     {
     case 0:
         m_pos[1]--;
+        if(m_pos[1] < 0 || mapTerrain[m_pos[1]][m_pos[0]] != 0)
+        {
+            m_pos[1]++;
+        }
         break;
     case 1:
         m_pos[1]++;
+        if(m_pos[1] > lig-1 || mapTerrain[m_pos[1]][m_pos[0]] != 0)
+        {
+            m_pos[1]--;
+        }
         break;
     case 2:
         m_pos[0]++;
+        if(m_pos[0] > col-1 || mapTerrain[m_pos[1]][m_pos[0]] != 0)
+        {
+            m_pos[0]--;
+        }
         break;
     case 3:
         m_pos[0]--;
+        if(m_pos[0] < 0 || mapTerrain[m_pos[1]][m_pos[0]] != 0)
+        {
+            m_pos[0]++;
+        }
         break;
     }
 }
@@ -170,29 +171,6 @@ void Personnage::heal(int qteHeal)
     if(m_vie > m_vieMax)
     {
         m_vie = m_vieMax;
-    }
-}
-
-void Personnage::select(int direction)
-{
-    switch(direction)
-    {
-    case 0:
-        m_cible[0] = m_pos[0];
-        m_cible[1] = m_pos[1]-1;
-        break;
-    case 1:
-        m_cible[0] = m_pos[0];
-        m_cible[1] = m_pos[1]+1;
-        break;
-    case 2:
-        m_cible[0] = m_pos[0]+1;
-        m_cible[1] = m_pos[1];
-        break;
-    case 3:
-        m_cible[0] = m_pos[0]-1;
-        m_cible[1] = m_pos[1];
-        break;
     }
 }
 
@@ -252,11 +230,6 @@ void Personnage::switchMode()
     } else {
         m_agro = true;
     }
-}
-
-int Personnage::getDegats() const
-{
-    return m_degats;
 }
 
 void Personnage::afficherRectSel(SDL_Renderer* renderer)

@@ -6,6 +6,7 @@
 #include "fonctions_SDL.h"
 #include "personnage.h"
 #include "terrain.h"
+#include "spell.h"
 
 using namespace std;
 
@@ -20,7 +21,12 @@ int main(int argc, char** argv)
         return EXIT_FAILURE;
     }
 
-    TTF_Init();
+    if(TTF_Init() < 0)
+    {
+        cout << "Erreur init TTF: " << TTF_GetError() << endl;
+        TTF_Quit();
+        return EXIT_FAILURE;
+    }
 
     //Creation de fenetre
     int width = 22*64;
@@ -45,14 +51,16 @@ int main(int argc, char** argv)
         cout << "Erreur du chargement de la font" << endl;
     }
 
+    Spell spark = Spell();
+
     vector<Personnage> allies;
-    allies.push_back(Personnage(60, 5, "Michel", mageTexture));
-    allies.push_back(Personnage(40, 10, "Jean", 2, 2, mageTexture));
+    allies.push_back(Personnage(60, spark, (char*)"Michel", mageTexture));
+    allies.push_back(Personnage(40, spark, (char*)"Jean", 2, 2, mageTexture));
 
     Terrain map1(ecran, allies);
 
-    map1.ajouterEnnemi(40,8,"Thierry",4,6);
-    map1.ajouterEnnemi(35,4,"Henry",6,8);
+    map1.ajouterEnnemi(40,spark,(char*)"Thierry",4,6);
+    map1.ajouterEnnemi(35,spark,(char*)"Henry",6,8);
 
     int xmouse;
     int ymouse;
@@ -84,19 +92,19 @@ int main(int argc, char** argv)
                     case SDLK_ESCAPE:
                         terminer = 1; break;
                     case SDLK_UP:
-                        map1.deplacerSelect(0);
+                        //map1.deplacerSelect(0);
                         break;
                     case SDLK_DOWN:
-                        map1.deplacerSelect(1);
+                        //map1.deplacerSelect(1);
                         break;
                     case SDLK_RIGHT:
-                        map1.deplacerSelect(2);
+                        //map1.deplacerSelect(2);
                         break;
                     case SDLK_LEFT:
-                        map1.deplacerSelect(3);
+                        //map1.deplacerSelect(3);
                         break;
                     case SDLK_SPACE:
-                        map1.switchMode();
+                        //map1.switchMode();
                         break;
                 }
                 case SDL_MOUSEBUTTONDOWN:

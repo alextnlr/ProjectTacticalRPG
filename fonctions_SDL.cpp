@@ -36,17 +36,6 @@ SDL_Texture* charger_image_transparente(const char* nomFichier, SDL_Renderer* re
 
 }
 
-SDL_Rect hitbox_update(SDL_Rect rec) {
-
-    SDL_Rect hit;
-    hit.x = rec.x+rec.w/5;
-    hit.y = rec.y+rec.h/5;
-    hit.w = rec.w-rec.w*2/5;
-    hit.h = rec.h-rec.h*2/5;
-
-    return hit;
-}
-
 SDL_Texture* charger_texte(const char* message, SDL_Renderer* renderer, TTF_Font* font, SDL_Color color) {
 
     SDL_Surface* text = TTF_RenderText_Solid(font, message, color);

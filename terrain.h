@@ -6,6 +6,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include "personnage.h"
+#include "spell.h"
 
 using namespace std;
 
@@ -14,7 +15,7 @@ class Terrain
 public:
     Terrain(SDL_Renderer* renderer, vector<Personnage> allies);
     Terrain(SDL_Renderer* renderer, vector<Personnage> allies, char* nom_map, char* nom_case, int xcase, int ycase);
-    void ajouterEnnemi(int pv, int dgt, char* nom, int posx, int posy);
+    void ajouterEnnemi(int pv, Spell spell, char* nom, int posx, int posy);
     void setFrame();
     void afficherTerrain(SDL_Renderer* renderer);
     void afficherPersos(SDL_Renderer* renderer);

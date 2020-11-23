@@ -85,9 +85,9 @@ Terrain::Terrain(SDL_Renderer* renderer, vector<Personnage> allies, char* nom_ma
     m_select = -1;
 }
 
-void Terrain::ajouterEnnemi(int pv, int dgt, char* nom, int posx, int posy)
+void Terrain::ajouterEnnemi(int pv, Spell spell, char* nom, int posx, int posy)
 {
-    m_ennemis.push_back(Personnage(pv,dgt,nom,posx,posy,m_mageTextureEvil));
+    m_ennemis.push_back(Personnage(pv,spell,nom,posx,posy,m_mageTextureEvil));
 }
 
 void Terrain::setFrame()
@@ -160,34 +160,34 @@ void Terrain::afficherAgro(SDL_Renderer* renderer)
 
 void Terrain::afficherInfos(SDL_Renderer* renderer, TTF_Font* fontText, int xmouse, int ymouse)
 {
-    if(m_select < 0)
+    m_found = false;
+    for(int i = 0 ; i < m_allies.size() ; i++)
     {
-        for(int i = 0 ; i < m_allies.size() ; i++)
+        if(xmouse/64 == m_allies[i].getCoord().x/64 && ymouse/64 == m_allies[i].getCoord().y/64)
         {
-            if(xmouse/64 == m_allies[i].getCoord().x/64 && ymouse/64 == m_allies[i].getCoord().y/64)
+            if(xmouse < 256 && ymouse < 128)
             {
-                if(xmouse < 256 && ymouse < 128)
-                {
-                    m_allies[i].afficherInfos(renderer, fontText, 1);
-                } else {
-                    m_allies[i].afficherInfos(renderer, fontText, 0);
-                }
+                m_allies[i].afficherInfos(renderer, fontText, 1);
+            } else {
+                m_allies[i].afficherInfos(renderer, fontText, 0);
             }
-        }
-        for(int i = 0 ; i < m_ennemis.size() ; i++)
-        {
-            if(xmouse/64 == m_ennemis[i].getCoord().x/64 && ymouse/64 == m_ennemis[i].getCoord().y/64)
-            {
-                if(xmouse < 256 && ymouse < 128)
-                {
-                    m_ennemis[i].afficherInfos(renderer, fontText, 1);
-                } else {
-                    m_ennemis[i].afficherInfos(renderer, fontText, 0);
-                }
-            }
+            m_found = true;
         }
     }
-    else
+    for(int i = 0 ; i < m_ennemis.size() ; i++)
+    {
+        if(xmouse/64 == m_ennemis[i].getCoord().x/64 && ymouse/64 == m_ennemis[i].getCoord().y/64)
+        {
+            if(xmouse < 256 && ymouse < 128)
+            {
+                m_ennemis[i].afficherInfos(renderer, fontText, 1);
+            } else {
+                m_ennemis[i].afficherInfos(renderer, fontText, 0);
+            }
+            m_found = true;
+        }
+    }
+    if(m_select >= 0 && !m_found)
     {
         if(xmouse < 256 && ymouse < 128)
         {
@@ -211,60 +211,25 @@ void Terrain::switchMvtWait()
     }
 }
 
-void Terrain::deplacerSelect(int dir)
+/*void Terrain::deplacerSelect(int dir)
 {
     if(m_physical_frame && !m_wait && m_select != -1)
-        {
-            if(m_allies[m_select].getAgro())
+    {
+        if(m_allies[m_select].getAgro())
         {
             m_allies[m_select].select(dir);
         } else {
-            int x, y;
-            x = m_allies[m_select].getCoord().x/64;
-            y = m_allies[m_select].getCoord().y/64;
-            m_allies[m_select].walk(dir);
+            m_allies[m_select].walk(dir, m_map, m_lig, m_col);
             m_allies[m_select].setState(dir+1);
-
-            if(m_allies[m_select].getCoord().x/64 < 0 || m_allies[m_select].getCoord().x/64 > 22)
-            {
-                m_allies[m_select].deplacer(x, y);
-            }
-            else if(m_allies[m_select].getCoord().y/64 < 0 || m_allies[m_select].getCoord().y/64 > 10)
-            {
-                m_allies[m_select].deplacer(x, y);
-            }
-            else if(m_map[m_allies[m_select].getCoord().y/64][m_allies[m_select].getCoord().x/64] != 0)
-            {
-                m_allies[m_select].deplacer(x, y);
-            }
-
-            for(int i = 0 ; i < m_ennemis.size() ; i++)
-            {
-                if(m_allies[m_select].getCoord().y == m_ennemis[i].getCoord().y && m_allies[m_select].getCoord().x == m_ennemis[i].getCoord().x)
-                {
-                    m_allies[m_select].deplacer(x, y);
-                }
-            }
-
-            for(int i = 0 ; i < m_allies.size() ; i++)
-            {
-                if(i != m_select)
-                {
-                    if(m_allies[m_select].getCoord().y == m_allies[i].getCoord().y && m_allies[m_select].getCoord().x == m_allies[i].getCoord().x)
-                    {
-                        m_allies[m_select].deplacer(x, y);
-                    }
-                }
-            }
 
             m_direction = dir;
             m_mouvement = true;
             m_wait = true;
         }
     }
-}
+}*/
 
-void Terrain::switchMode()
+/*void Terrain::switchMode()
 {
     if(m_select >= 0)
     {
@@ -281,7 +246,7 @@ void Terrain::switchMode()
             m_allies[m_select].switchMode();
         }
     }
-}
+}*/
 
 void Terrain::select(int xmouse, int ymouse)
 {

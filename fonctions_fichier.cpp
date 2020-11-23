@@ -70,16 +70,6 @@ void desallouer_tab_2D(int** tab, int n) {
     delete [] tab;
 }
 
-void afficher_tab_2D(char** tab, int n, int m) {
-
-    for(unsigned i = 0 ; i < n ; i++) {
-        for(unsigned j = 0 ; j < m ; j++) {
-            cout << tab[i][j];
-        }
-        cout << endl;
-    }
-}
-
 void taille_fichier(const char* nomFichier, int* nbLig, int* nbCol) {
     FILE* fichier = nullptr;
     fichier = fopen(nomFichier,"r");
@@ -129,17 +119,6 @@ char** lire_fichier(const char* nomFichier) {
         }
         for(unsigned j = 0 ; j<40 ; j++) {
             chaine[j] = ' ';
-        }
-    }
-
-    return tab;
-}
-
-char** modifier_caractere(char** tab, int n, int m, char ancien, char nouveau) {
-
-    for(unsigned i = 0 ; i < n ; i++){
-        for(unsigned j = 0 ; j < m ; j++) {
-            if(tab[i][j]==ancien) {tab[i][j] = nouveau;}
         }
     }
 

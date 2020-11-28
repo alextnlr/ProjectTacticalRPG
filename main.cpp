@@ -7,12 +7,14 @@
 #include "personnage.h"
 #include "terrain.h"
 #include "spell.h"
+#include "affichage.h"
+#include "combat.h"
 
 using namespace std;
 
 int main(int argc, char** argv)
 {
-    SDL_Window* fenetre;
+    /*SDL_Window* fenetre;
     SDL_Event evenements;
     int terminer = 0;
     if(SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -49,59 +51,63 @@ int main(int argc, char** argv)
     TTF_Font* fontText = TTF_OpenFont("prstartk.ttf",16);
     if(!fontText) {
         cout << "Erreur du chargement de la font" << endl;
-    }
+    }*/
+
+    Affichage display = Affichage();
+    Combat fight = Combat();
+
+    Terrain map = Terrain();
 
     Spell spark = Spell();
 
     vector<Personnage> allies;
-    allies.push_back(Personnage(60, spark, (char*)"Michel", mageTexture));
-    allies.push_back(Personnage(40, spark, (char*)"Jean", 2, 2, mageTexture));
+    allies.push_back(Personnage(60, spark, (char*)"Michel"));
+    allies.push_back(Personnage(40, spark, (char*)"Jean", 2, 2));
 
-    Terrain map1(ecran, allies);
-
-    map1.ajouterEnnemi(40,spark,(char*)"Thierry",4,6);
-    map1.ajouterEnnemi(35,spark,(char*)"Henry",6,8);
+    vector<Personnage> ennemies;
+    ennemies.push_back(Personnage(40,spark,(char*)"Thierry",4,6));
+    ennemies.push_back(Personnage(35,spark,(char*)"Henry",6,8));
 
     int xmouse;
     int ymouse;
 
+    SDL_Event evenements;
+
+    bool end = false;
+
     //Boucle principale
-    while(!terminer) {
-        SDL_RenderClear(ecran);
+    while(!end) {
+        display.clearRenderer();
 
         SDL_GetMouseState(&xmouse,&ymouse);
 
-        map1.setFrame();
+        display.setFrame();
 
-        map1.afficherTerrain(ecran);
-        map1.afficherPersos(ecran);
-        map1.afficherDegats(ecran,fontText);
-        map1.afficherAgro(ecran);
-        map1.afficherInfos(ecran,fontText,xmouse,ymouse);
-
-        map1.switchMvtWait();
+        display.displayTerrain(map.getMapInt(), map.getLig(), map.getCol());
+        display.displayCharacters(allies, ennemies);
+        display.displayInfoCard(allies, ennemies, xmouse, ymouse);
 
         SDL_PollEvent(&evenements);
         switch(evenements.type)
         {
             case SDL_QUIT:
-                terminer = 1; break;
+                end = 1; break;
             case SDL_KEYDOWN:
                 switch(evenements.key.keysym.sym)
                 {
                     case SDLK_ESCAPE:
-                        terminer = 1; break;
+                        end = 1; break;
                     case SDLK_UP:
-                        //map1.deplacerSelect(0);
+                        fight.move(allies, display.getPhysicalFrame(), 0, map.getMapInt(), map.getLig(), map.getCol());
                         break;
                     case SDLK_DOWN:
-                        //map1.deplacerSelect(1);
+                        fight.move(allies, display.getPhysicalFrame(), 1, map.getMapInt(), map.getLig(), map.getCol());
                         break;
                     case SDLK_RIGHT:
-                        //map1.deplacerSelect(2);
+                        fight.move(allies, display.getPhysicalFrame(), 2, map.getMapInt(), map.getLig(), map.getCol());
                         break;
                     case SDLK_LEFT:
-                        //map1.deplacerSelect(3);
+                        fight.move(allies, display.getPhysicalFrame(), 3, map.getMapInt(), map.getLig(), map.getCol());
                         break;
                     case SDLK_SPACE:
                         //map1.switchMode();
@@ -112,31 +118,21 @@ int main(int argc, char** argv)
                     switch(evenements.button.button)
                     {
                         case SDL_BUTTON_LEFT:
-                            map1.select(xmouse,ymouse);
+                            fight.select(allies, xmouse, ymouse);
                             break;
                         case SDL_BUTTON_RIGHT:
-                            map1.deselect();
                             break;
                     }
                 }
         }
 
-        SDL_RenderPresent(ecran);
-        SDL_Delay(1000./60.);
+        display.displayRenderer();
     }
 
     //Quitter SDL
-    map1.desallouer();
-    for(int i = allies.size()-1 ; i >= 0; i--)
-    {
-        allies[i].desallouer();
-    }
-    TTF_CloseFont(fontText);
-    TTF_Quit();
-    SDL_DestroyTexture(mageTexture);
-    SDL_DestroyRenderer(ecran);
-    SDL_DestroyWindow(fenetre);
-    SDL_Quit();
+
+    map.desallouer();
+    display.desallouer();
 
     return 0;
 }

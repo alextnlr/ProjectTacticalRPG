@@ -13,10 +13,9 @@ class Combat
 public:
     Combat();
     void switchMvtWait(bool physical_frame, int frameNum);
-    int getSelect() const;
+    void move(vector<Personnage> &allies, bool physicalFrame, int dir, int** map, int lig, int col);
+    void select(vector<Personnage> &allies, int xmouse, int ymouse);
 private:
-    int m_select;
-    bool m_wait;
     bool m_mouvement;
 };
 

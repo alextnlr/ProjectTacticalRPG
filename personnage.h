@@ -9,12 +9,12 @@
 class Personnage
 {
 public:
-    Personnage(int pv, Spell spell, char* nom, SDL_Texture* texture);
-    Personnage(int pv, Spell spell, char* nom, int x, int y, SDL_Texture* texture);
+    Personnage(int pv, Spell spell, char* nom);
+    Personnage(int pv, Spell spell, char* nom, int x, int y);
     Personnage(Personnage const& copie);
     void recevoirDegats(int nbDegats);
     bool attaquer(Personnage &cible);
-    void afficherDegats(SDL_Renderer* renderer, TTF_Font* fontText);
+    SDL_Rect afficherDegats(int texteW, int texteH);
     void deplacer(int x, int y);
     void walk(int direction, int** mapTerrain, int lig, int col);
     void heal(int qteHeal);
@@ -23,13 +23,17 @@ public:
     void afficherEtat() const;
     void afficherSelect(SDL_Renderer* renderer) const;
     bool getAgro() const;
-    bool getHurt() const;
-    void nonHurt();
+    int getHurt() const;
+    int getState() const;
+    int getHp() const;
+    int getMaxHp() const;
+    char* getName() const;
+    int getWait() const;
     void switchMode();
-    void afficherPersoBarre(SDL_Renderer* renderer, bool phy_frame);
-    void afficherRectSel(SDL_Renderer* renderer);
+    SDL_Rect afficherPersoBarre(bool phy_frame);
     void setState(int state);
-    void afficherInfos(SDL_Renderer* renderer, TTF_Font* font, bool gauche);
+    void setWait(int temps);
+    void decreaseWait();
     void desallouer();
 
 private:
@@ -43,13 +47,10 @@ private:
     int m_hurt;
     int m_cible[2];
     int m_dgtAnim;
-    bool m_select;
-    SDL_Texture* m_texture;
     int m_frameIdle;
     int m_state;
     bool m_mouvement;
-    bool m_wait;
-    int m_direction;
+    int m_wait;
 };
 
 #endif // PERSONNAGE_H_INCLUDED

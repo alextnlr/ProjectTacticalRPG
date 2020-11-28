@@ -59,8 +59,6 @@ Affichage::Affichage()
     m_frameNum = 0;
 
     setRectTerrain(16,10);
-
-    m_select = -1;
 }
 
 void Affichage::setRectTerrain(int nbColonnes, int nbLignes)
@@ -76,6 +74,17 @@ void Affichage::setRectTerrain(int nbColonnes, int nbLignes)
         bloc.h = blocH/nbLignes;
         m_rectTerrain.push_back(bloc);
     }
+}
+
+void Affichage::clearRenderer() const
+{
+    SDL_RenderClear(m_renderer);
+}
+
+void Affichage::displayRenderer() const
+{
+    SDL_RenderPresent(m_renderer);
+    SDL_Delay(1000. / 60.);
 }
 
 void Affichage::setFrame()
@@ -99,22 +108,61 @@ void Affichage::displayTerrain(int** mapTerrain, int lig, int col)
     }
 }
 
-void Affichage::displayCharacters(vector<Personnage> allies, vector<Personnage> ennemies)
+void Affichage::displayCharacters(vector<Personnage> &allies, vector<Personnage> &ennemies)
 {
     for(int i = 0 ; i < ennemies.size() ; i++)
     {
-        ennemies[i].afficherPersoBarre(m_renderer, m_physicalFrame);
-        ennemies[i].afficherDegats(m_renderer, m_font16);
+        if (ennemies[i].estVivant())
+        {
+            SDL_Rect rectPos = ennemies[i].getCoord();
+            SDL_Rect rectFrame = ennemies[i].afficherPersoBarre(m_physicalFrame);
+            SDL_RenderCopy(m_renderer, m_redMageTexture, &rectFrame, &rectPos);
+            if (ennemies[i].getHurt()) {
+                SDL_Color color = { 0,0,0,0 };
+                char dgt[3];
+                sprintf_s(dgt, "%i", ennemies[i].getHurt());
+                SDL_Texture* text = charger_texte(dgt, m_renderer, m_font16, color);
+                int texteW, texteH;
+                SDL_QueryTexture(text, NULL, NULL, &texteW, &texteH);
+                SDL_Rect rectText = ennemies[i].afficherDegats(texteW, texteH);
+                SDL_RenderCopy(m_renderer, text, NULL, &rectText);
+            }
+        }
     }
 
     for(int i = 0 ; i < allies.size() ; i++)
     {
-        allies[i].afficherPersoBarre(m_renderer, m_physicalFrame);
-        allies[i].afficherDegats(m_renderer, m_font16);
+        if (allies[i].estVivant())
+        {
+            SDL_Rect rectPos = allies[i].getCoord();
+            SDL_Rect rectFrame = allies[i].afficherPersoBarre(m_physicalFrame);
+            SDL_RenderCopy(m_renderer, m_blueMageTexture, &rectFrame, &rectPos);
+            if (allies[i].getState() >= 0)
+            {
+                SDL_SetRenderDrawColor(m_renderer, 255, 255, 255, 255);
+                SDL_RenderDrawRect(m_renderer, &rectPos);
+                SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);
+            }
+            if (allies[i].getHurt()) {
+                SDL_Color color = { 0,0,0,0 };
+                char dgt[3];
+                sprintf_s(dgt, "%i", allies[i].getHurt());
+                SDL_Texture* text = charger_texte(dgt, m_renderer, m_font16, color);
+                int texteW, texteH;
+                SDL_QueryTexture(text, NULL, NULL, &texteW, &texteH);
+                SDL_Rect rectText = allies[i].afficherDegats(texteW, texteH);
+                SDL_RenderCopy(m_renderer, text, NULL, &rectText);
+            }
+            allies[i].decreaseWait();
+            if (allies[i].getWait() == 0 && allies[i].getState() >= 0 && m_physicalFrame)
+            {
+                allies[i].setState(0);
+            }
+        }
     }
 }
 
-void Affichage::displayInfoCard(vector<Personnage> allies, vector<Personnage> ennemies, int xmouse, int ymouse)
+void Affichage::displayInfoCard(vector<Personnage> &allies, vector<Personnage> &ennemies, int xmouse, int ymouse)
 {
     m_found = false;
     for(int i = 0 ; i < allies.size() ; i++)
@@ -123,39 +171,109 @@ void Affichage::displayInfoCard(vector<Personnage> allies, vector<Personnage> en
         {
             if(xmouse < 256 && ymouse < 128)
             {
-                allies[i].afficherInfos(m_renderer, m_font16, 1);
+                createInfoCard(allies[i], 1);
             } else {
-                allies[i].afficherInfos(m_renderer, m_font16, 0);
+                createInfoCard(allies[i], 1);
             }
             m_found = true;
         }
     }
+
     for(int i = 0 ; i < ennemies.size() ; i++)
     {
         if(xmouse/64 == ennemies[i].getCoord().x/64 && ymouse/64 == ennemies[i].getCoord().y/64)
         {
             if(xmouse < 256 && ymouse < 128)
             {
-                ennemies[i].afficherInfos(m_renderer, m_font16, 1);
+                createInfoCard(ennemies[i], 1);
             } else {
-                ennemies[i].afficherInfos(m_renderer, m_font16, 0);
+                createInfoCard(ennemies[i], 0);
             }
             m_found = true;
         }
     }
-    if(m_select >= 0 && !m_found)
+
+
+    for (int i = 0 ; i < allies.size() ; i++)
     {
-        if(xmouse < 256 && ymouse < 128)
+        if(allies[i].getState() >= 0 && !m_found)
         {
-            allies[m_select].afficherInfos(m_renderer, m_font16, 1);
-        } else {
-            if(allies[m_select].getCoord().x < 256 && allies[m_select].getCoord().y < 128)
+            if(xmouse < 256 && ymouse < 128)
             {
-                allies[m_select].afficherInfos(m_renderer, m_font16, 1);
+                createInfoCard(allies[i], 1);
             } else {
-                allies[m_select].afficherInfos(m_renderer, m_font16, 0);
+                if(allies[i].getCoord().x < 256 && allies[i].getCoord().y < 128)
+                {
+                    createInfoCard(allies[i], 1);
+                } else {
+                    createInfoCard(allies[i], 0);
+                }
             }
         }
+    }
+}
+
+void Affichage::createInfoCard(Personnage perso, int pos) {
+    if (perso.estVivant())
+    {
+        SDL_SetRenderDrawColor(m_renderer, 160, 82, 45, 255);
+        SDL_Rect rectCard;
+        rectCard.x = pos * 18 * 64;
+        rectCard.y = 0;
+        rectCard.w = 256;
+        rectCard.h = 128;
+        SDL_RenderFillRect(m_renderer, &rectCard);
+        SDL_SetRenderDrawColor(m_renderer, 139, 69, 19, 255);
+        SDL_RenderDrawRect(m_renderer, &rectCard);
+
+        SDL_SetRenderDrawColor(m_renderer, 255, 255, 255, 255);
+
+        SDL_Color color = { 0,0,0,0 };
+        char hp[10];
+        sprintf_s(hp, "%i / %i", perso.getHp(), perso.getMaxHp());
+        SDL_Texture* hpStr = charger_texte(hp, m_renderer, m_font16, color);
+        int texteW, texteH;
+        SDL_QueryTexture(hpStr, NULL, NULL, &texteW, &texteH);
+
+        SDL_Rect textePos;
+        textePos.x = rectCard.x + (rectCard.w - texteW) / 2;
+        textePos.y = 60;
+        textePos.w = texteW;
+        textePos.h = texteH;
+
+        SDL_RenderCopy(m_renderer, hpStr, NULL, &textePos);
+
+        SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);
+        SDL_Rect UnderBar;
+        UnderBar.w = rectCard.w * 2 / 3;
+        UnderBar.h = 20;
+        UnderBar.x = rectCard.x + (rectCard.w - UnderBar.w) / 2;
+        UnderBar.y = 90;
+        SDL_RenderFillRect(m_renderer, &UnderBar);
+
+        SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);
+        SDL_RenderDrawRect(m_renderer, &UnderBar);
+
+        SDL_SetRenderDrawColor(m_renderer, 0, 255, 0, 255);
+        SDL_Rect Bar;
+        Bar.x = UnderBar.x;
+        Bar.y = UnderBar.y;
+        Bar.w = UnderBar.w * perso.getHp() / perso.getMaxHp();
+        Bar.h = UnderBar.h;
+        SDL_RenderFillRect(m_renderer, &Bar);
+
+        SDL_Texture* nom = charger_texte(perso.getName(), m_renderer, m_font16, color);
+        SDL_QueryTexture(nom, NULL, NULL, &texteW, &texteH);
+
+        SDL_Rect nom_pos;
+        nom_pos.x = rectCard.x + (rectCard.w - texteW) / 2;
+        nom_pos.y = 25;
+        nom_pos.w = texteW;
+        nom_pos.h = texteH;
+
+        SDL_RenderCopy(m_renderer, nom, NULL, &nom_pos);
+
+        SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);
     }
 }
 
@@ -169,9 +287,19 @@ TTF_Font* Affichage::getFontDmg() const
     return m_font16;
 }
 
+bool Affichage::getPhysicalFrame() const
+{
+    return m_physicalFrame;
+}
+
 void Affichage::desallouer()
 {
     TTF_CloseFont(m_font16);
     SDL_DestroyTexture(m_redMageTexture);
     SDL_DestroyTexture(m_blueMageTexture);
+    SDL_DestroyTexture(m_background);
+    SDL_DestroyRenderer(m_renderer);
+    SDL_DestroyWindow(m_window);
+    TTF_Quit();
+    SDL_Quit();
 }

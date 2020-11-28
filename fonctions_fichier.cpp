@@ -72,7 +72,7 @@ void desallouer_tab_2D(int** tab, int n) {
 
 void taille_fichier(const char* nomFichier, int* nbLig, int* nbCol) {
     FILE* fichier = nullptr;
-    fichier = fopen(nomFichier,"r");
+    fopen_s(&fichier,nomFichier,"r");
     if(fichier == nullptr) {
         cout << "Echec de l'ouverture" << endl;
         exit(EXIT_FAILURE);
@@ -101,7 +101,7 @@ void taille_fichier(const char* nomFichier, int* nbLig, int* nbCol) {
 char** lire_fichier(const char* nomFichier) {
 
     FILE* fichier = nullptr;
-    fichier = fopen(nomFichier,"r");
+    fopen_s(&fichier,nomFichier,"r");
     if(fichier == nullptr) {
         cout << "Echec de l'ouverture" << endl;
         exit(EXIT_FAILURE);
@@ -128,7 +128,7 @@ char** lire_fichier(const char* nomFichier) {
 void ecrire_fichier(const char* nomFichier, char** tab, int n, int m) {
 
     FILE* fichier = nullptr;
-    fichier = fopen(nomFichier,"w");
+    fopen_s(&fichier,nomFichier,"w");
     if(fichier == nullptr) {
         cout << "Echec de l'ouverture" << endl;
         exit(EXIT_FAILURE);

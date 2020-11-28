@@ -9,7 +9,7 @@ using namespace std;
 
 Spell::Spell()
 {
-    m_nom_sort = "Spark";
+    m_nom_sort = (char*)"Spark";
     m_dgt = 1;
     m_type = 0;
     m_cost = 1;
@@ -36,7 +36,10 @@ int Spell::getDegats() const
     return m_dgt;
 }
 
-int** Spell::attaque(int** obstacles)
+/*int** Spell::attaque(int** obstacles, int posCast[2])
 {
-
-}
+    switch (m_type) {
+    case 0:
+        break;
+    }
+}*/

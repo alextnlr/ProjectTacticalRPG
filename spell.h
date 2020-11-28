@@ -15,7 +15,7 @@ public:
     Spell(char* nom, int dgt, int type, int cost);
     Spell(Spell const& copie);
     int getDegats() const;
-    int** attaque(int** obstacles);
+    //int** attaque(int** obstacles, int posCast[2]);
 private:
     char* m_nom_sort;
     int m_dgt;

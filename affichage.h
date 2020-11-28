@@ -13,12 +13,16 @@ class Affichage
 public:
     Affichage();
     void setRectTerrain(int nbColonnes, int nbLignes);
+    void clearRenderer() const;
+    void displayRenderer() const;
     void setFrame();
     void displayTerrain(int** mapTerrain, int lig, int col);
-    void displayCharacters(vector<Personnage> allies, vector<Personnage> ennemies);
-    void displayInfoCard(vector<Personnage> allies, vector<Personnage> ennemies, int xmouse, int ymouse);
+    void displayCharacters(vector<Personnage> &allies, vector<Personnage> &ennemies);
+    void displayInfoCard(vector<Personnage> &allies, vector<Personnage> &ennemies, int xmouse, int ymouse);
+    void createInfoCard(Personnage perso, int pos);
     SDL_Renderer* getRenderer() const;
     TTF_Font* getFontDmg() const;
+    bool getPhysicalFrame() const;
     void desallouer();
 private:
     int m_widthWindow;

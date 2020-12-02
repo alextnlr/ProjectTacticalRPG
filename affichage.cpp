@@ -44,8 +44,23 @@ Affichage::Affichage()
     if(m_redMageTexture == NULL || m_blueMageTexture == NULL) {
         cout << "Erreur chargement texture: " << SDL_GetError() << endl;
     }
+    m_infoCard = charger_image_transparente("InfoCard.bmp", m_renderer, r, g, b);
+    if (m_infoCard == NULL) {
+        cout << "Erreur chargement texture info Card: " << SDL_GetError() << endl;
+    }
+    m_underBar = charger_image_transparente("UnderBar.bmp", m_renderer, r, g, b);
+    m_bar = charger_image_transparente("Bar.bmp", m_renderer, r, g, b);
+    if (m_underBar == NULL || m_bar == NULL) {
+        cout << "Erreur chargement texture bar: " << SDL_GetError() << endl;
+    }
+    m_mana = charger_image_transparente("Mana.bmp", m_renderer, r, g, b);
+    m_blackMana = charger_image_transparente("BlackMana.bmp", m_renderer, r, g, b);
+    if (m_mana == NULL || m_blackMana == NULL) {
+        cout << "Erreur chargement texture mana: " << SDL_GetError() << endl;
+    }
 
-    m_font16 = TTF_OpenFont("prstartk.ttf",16);
+    m_font16 = TTF_OpenFont("prstartk.ttf", 16);
+    m_font8 = TTF_OpenFont("prstartk.ttf", 12);
     if(!m_font16) {
         cout << "Erreur du chargement de la font" << endl;
     }
@@ -249,45 +264,13 @@ void Affichage::createInfoCard(Personnage &perso, int pos) {
         rectCard.y = 0;
         rectCard.w = 256;
         rectCard.h = 128;
-        SDL_RenderFillRect(m_renderer, &rectCard);
-        SDL_SetRenderDrawColor(m_renderer, 139, 69, 19, 255);
-        SDL_RenderDrawRect(m_renderer, &rectCard);
+        SDL_RenderCopy(m_renderer, m_infoCard, NULL, &rectCard);
 
         SDL_SetRenderDrawColor(m_renderer, 255, 255, 255, 255);
 
-        SDL_Color color = { 0,0,0,0 };
-        char hp[10];
-        sprintf_s(hp, "%i / %i", perso.getHp(), perso.getMaxHp());
-        SDL_Texture* hpStr = charger_texte(hp, m_renderer, m_font16, color);
         int texteW, texteH;
-        SDL_QueryTexture(hpStr, NULL, NULL, &texteW, &texteH);
 
-        SDL_Rect textePos;
-        textePos.x = rectCard.x + (rectCard.w - texteW) / 2;
-        textePos.y = 60;
-        textePos.w = texteW;
-        textePos.h = texteH;
-
-        SDL_RenderCopy(m_renderer, hpStr, NULL, &textePos);
-
-        SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);
-        SDL_Rect UnderBar;
-        UnderBar.w = rectCard.w * 2 / 3;
-        UnderBar.h = 20;
-        UnderBar.x = rectCard.x + (rectCard.w - UnderBar.w) / 2;
-        UnderBar.y = 90;
-        SDL_RenderFillRect(m_renderer, &UnderBar);
-
-        SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);
-        SDL_RenderDrawRect(m_renderer, &UnderBar);
-
-        SDL_SetRenderDrawColor(m_renderer, 0, 255, 0, 255);
-        SDL_Rect Bar;
-        Bar.x = UnderBar.x;
-        Bar.y = UnderBar.y;
-        Bar.w = UnderBar.w * perso.getHp() / perso.getMaxHp();
-        Bar.h = UnderBar.h;
-        SDL_RenderFillRect(m_renderer, &Bar);
+        SDL_Color color = { 255, 255, 255, 255 };
 
         SDL_Texture* nom = charger_texte(perso.getName(), m_renderer, m_font16, color);
         SDL_QueryTexture(nom, NULL, NULL, &texteW, &texteH);
@@ -300,7 +283,59 @@ void Affichage::createInfoCard(Personnage &perso, int pos) {
 
         SDL_RenderCopy(m_renderer, nom, NULL, &nom_pos);
 
+        char hp[10];
+        sprintf_s(hp, "%i/%i", perso.getHp(), perso.getMaxHp());
+        SDL_Texture* hpStr = charger_texte(hp, m_renderer, m_font8, color);
+        SDL_QueryTexture(hpStr, NULL, NULL, &texteW, &texteH);
+
+        SDL_Rect textePos;
+        textePos.x = rectCard.x + 20;
+        textePos.y = 55;
+        textePos.w = texteW;
+        textePos.h = texteH;
+
+        SDL_RenderCopy(m_renderer, hpStr, NULL, &textePos);
+
+        SDL_Rect UnderBar;
+        UnderBar.x = rectCard.x + 90;
+        UnderBar.y = 55;
+        UnderBar.w = (rectCard.x + rectCard.w - 20) - UnderBar.x;
+        UnderBar.h = textePos.h;
+        
+        SDL_RenderCopy(m_renderer, m_underBar, NULL, &UnderBar);
+
+        SDL_Rect Bar;
+        Bar.x = UnderBar.x+2;
+        Bar.y = UnderBar.y;
+        Bar.w = (UnderBar.w * perso.getHp() / perso.getMaxHp())-4;
+        Bar.h = UnderBar.h;
+
+        SDL_RenderCopy(m_renderer, m_bar, NULL, &Bar);
+
+        SDL_QueryTexture(m_mana, NULL, NULL, &texteW, &texteH);
+
+        SDL_Rect Mana;
+        Mana.y = 72;
+        Mana.w = texteW;
+        Mana.h = texteH;
+
+        for (unsigned i = 0; i < 5; i++)
+        {
+            Mana.x = 47+36*i;
+            if (i+1 <= perso.getMana())
+            {
+                SDL_RenderCopy(m_renderer, m_mana, NULL, &Mana);
+            }
+            else 
+            {
+                SDL_RenderCopy(m_renderer, m_blackMana, NULL, &Mana);
+            }
+        }
+
         SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);
+
+        SDL_DestroyTexture(hpStr);
+        SDL_DestroyTexture(nom);
     }
 }
 
@@ -322,8 +357,14 @@ bool Affichage::getPhysicalFrame() const
 void Affichage::desallouer()
 {
     TTF_CloseFont(m_font16);
+    TTF_CloseFont(m_font8);
     SDL_DestroyTexture(m_redMageTexture);
     SDL_DestroyTexture(m_blueMageTexture);
+    SDL_DestroyTexture(m_bar);
+    SDL_DestroyTexture(m_underBar);
+    SDL_DestroyTexture(m_infoCard);
+    SDL_DestroyTexture(m_mana);
+    SDL_DestroyTexture(m_blackMana);
     SDL_DestroyTexture(m_background);
     SDL_DestroyRenderer(m_renderer);
     SDL_DestroyWindow(m_window);

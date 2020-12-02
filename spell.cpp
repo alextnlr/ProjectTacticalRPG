@@ -14,16 +14,22 @@ Spell::Spell()
     m_dgt = 5;
     m_type = 0;
     m_cost = 1;
-    m_cycle = 4;
+    if (m_type <= 1)
+    {
+        m_cycle = 4;
+    }
 }
 
-Spell::Spell(char* nom, int dgt, int type, int cost, int cycle)
+Spell::Spell(char* nom, int dgt, int type, int cost)
 {
     m_nom_sort = nom;
     m_dgt = dgt;
     m_type = type;
     m_cost = cost;
-    m_cycle = cycle;
+    if (m_type <= 1)
+    {
+        m_cycle = 4;
+    }
 }
 
 Spell::Spell(Spell const& copie)
@@ -45,6 +51,11 @@ int Spell::getDegats() const
     return m_dgt;
 }
 
+int Spell::getCost() const
+{
+    return m_cost;
+}
+
 vector<int**> Spell::spellGrid(int** map, int lig, int col, int posCastx, int posCasty)
 {
     vector<int**> spellGrid;
@@ -52,11 +63,15 @@ vector<int**> Spell::spellGrid(int** map, int lig, int col, int posCastx, int po
     case 0:
         spellGrid = spellGridType0(map, lig, col, posCastx, posCasty);
         break;
+    case 1:
+        spellGrid = spellGridType1(map, lig, col, posCastx, posCasty);
+        break;
     }
     return spellGrid;
 }
 
-vector<int**> Spell::spellGridType0(int** &map, int lig, int col, int posCastx, int posCasty) {
+vector<int**> Spell::spellGridType0(int** &map, int lig, int col, int posCastx, int posCasty) 
+{
 
     vector<int**> spellGrid0;
 
@@ -83,4 +98,40 @@ vector<int**> Spell::spellGridType0(int** &map, int lig, int col, int posCastx, 
     }
 
     return spellGrid0;
+}
+
+vector<int**> Spell::spellGridType1(int**& map, int lig, int col, int posCastx, int posCasty)
+{
+    vector<int**> spellGrid1;
+    for (unsigned i = 0; i < 4; i++)
+    {
+        spellGrid1.push_back(allouer_tab_2DInt(lig, col));
+    }
+
+    int k = 1;
+    while (posCasty - k >= 0 && map[posCastx][posCasty - k] == 0)
+    {
+        spellGrid1[0][posCastx][posCasty - k] = 1;
+        k++;
+    }
+    k = 1;
+    while (posCastx + k < col && map[posCastx + k][posCasty] == 0)
+    {
+        spellGrid1[1][posCastx + k][posCasty] = 1;
+        k++;
+    }
+    k = 1;
+    while (posCasty + k < lig && map[posCastx][posCasty + k] == 0)
+    {
+        spellGrid1[2][posCastx][posCasty + k] = 1;
+        k++;
+    }
+    k = 1;
+    while (posCastx - k >= 0 && map[posCastx - k][posCasty] == 0)
+    {
+        spellGrid1[3][posCastx - k][posCasty] = 1;
+        k++;
+    }
+
+    return spellGrid1;
 }

@@ -12,12 +12,14 @@ class Spell
 {
 public:
     Spell();
-    Spell(char* nom, int dgt, int type, int cost, int cycle);
+    Spell(char* nom, int dgt, int type, int cost);
     Spell(Spell const& copie);
     int getCycle() const;
     int getDegats() const;
+    int getCost() const;
     vector<int**> spellGrid(int** map, int lig, int col, int posCastx, int posCasty);
     vector<int**> spellGridType0(int** &map, int lig, int col, int posCastx, int posCasty);
+    vector<int**> spellGridType1(int**& map, int lig, int col, int posCastx, int posCasty);
 private:
     char* m_nom_sort;
     int m_dgt;

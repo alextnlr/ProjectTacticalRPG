@@ -7,12 +7,13 @@
 
 using namespace std;
 
-Personnage::Personnage(int pv, Spell spell, char* nom)
+Personnage::Personnage(int pv, Spell spell, char* nom, int team)
 {
     m_vieMax = pv;
     m_vie = m_vieMax;
     m_spell = spell;
-    m_ptsMagie = 100;
+    m_team = team;
+    m_ptsMagie = 5;
     m_nom = nom;
     m_pos[0] = 0;
     m_pos[1] = 0;
@@ -24,12 +25,13 @@ Personnage::Personnage(int pv, Spell spell, char* nom)
     m_facing = 0;
 }
 
-Personnage::Personnage(int pv, Spell spell, char* nom, int x, int y)
+Personnage::Personnage(int pv, Spell spell, char* nom, int team, int x, int y)
 {
     m_vieMax = pv;
     m_vie = m_vieMax;
     m_spell = spell;
-    m_ptsMagie = 100;
+    m_team = team;
+    m_ptsMagie = 5;
     m_nom = nom;
     m_pos[0] = x;
     m_pos[1] = y;
@@ -46,6 +48,7 @@ Personnage::Personnage(Personnage const& copie)
     m_vie = copie.m_vie;
     m_vieMax = copie.m_vieMax;
     m_spell = copie.m_spell;
+    m_team = copie.m_team;
     m_ptsMagie = copie.m_ptsMagie;
     m_nom = copie.m_nom;
     m_pos[0] = copie.m_pos[0];
@@ -85,6 +88,14 @@ void Personnage::attack(Personnage &cible, int** map, int lig, int col)
     }
 
     desallouer_tab_2D(mapTemp, col);
+}
+
+void Personnage::decreaseMana()
+{
+    if (m_ptsMagie > 0)
+    {
+        m_ptsMagie -= m_spell.getCost();
+    }
 }
 
 SDL_Rect Personnage::afficherDegats(int texteW, int texteH)
@@ -197,9 +208,19 @@ int Personnage::getMaxHp() const
     return m_vieMax;
 }
 
+int Personnage::getMana() const
+{
+    return m_ptsMagie;
+}
+
 char* Personnage::getName() const
 {
     return m_nom;
+}
+
+int Personnage::getTeam() const
+{
+    return m_team;
 }
 
 int Personnage::getWait() const

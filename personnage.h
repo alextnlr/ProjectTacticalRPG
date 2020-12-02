@@ -9,11 +9,12 @@
 class Personnage
 {
 public:
-    Personnage(int pv, Spell spell, char* nom);
-    Personnage(int pv, Spell spell, char* nom, int x, int y);
+    Personnage(int pv, Spell spell, char* nom, int team);
+    Personnage(int pv, Spell spell, char* nom, int team, int x, int y);
     Personnage(Personnage const& copie);
     void recevoirDegats(int nbDegats);
     void attack(Personnage &cible, int** map, int lig, int col);
+    void decreaseMana();
     SDL_Rect afficherDegats(int texteW, int texteH);
     void deplacer(int x, int y);
     void walk(int direction, int** mapTerrain, int lig, int col);
@@ -24,7 +25,9 @@ public:
     int getState() const;
     int getHp() const;
     int getMaxHp() const;
+    int getMana() const;
     char* getName() const;
+    int getTeam() const;
     int getWait() const;
     int getFacing() const;
     int getFacingMax() const;
@@ -49,6 +52,7 @@ private:
     int m_state;
     int m_wait;
     int m_facing;
+    int m_team;
 };
 
 #endif // PERSONNAGE_H_INCLUDED

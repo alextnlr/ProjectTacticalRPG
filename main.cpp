@@ -22,14 +22,15 @@ int main(int argc, char** argv)
     Terrain map = Terrain();
 
     Spell spark = Spell();
+    Spell boom = Spell((char*)"boom", 10, 1, 1);
 
     vector<Personnage> allies;
-    allies.push_back(Personnage(60, spark, (char*)"Michel",4,9));
-    allies.push_back(Personnage(40, spark, (char*)"Jean", 2, 2));
+    allies.push_back(Personnage(60, spark, (char*)"Michel", 0,4,9));
+    allies.push_back(Personnage(40, boom, (char*)"Jean", 0, 2, 2));
 
     vector<Personnage> ennemies;
-    ennemies.push_back(Personnage(40, spark,(char*)"Thierry",4,6));
-    ennemies.push_back(Personnage(35, spark,(char*)"Henry",14,7));
+    ennemies.push_back(Personnage(40, spark,(char*)"Thierry", 1, 4,6));
+    ennemies.push_back(Personnage(35, spark,(char*)"Henry", 1, 14,7));
 
     int xmouse;
     int ymouse;
@@ -50,6 +51,8 @@ int main(int argc, char** argv)
         display.displayCharacters(allies, ennemies);
         display.displaySpellRange(allies, map.getMapInt(), map.getLig(), map.getCol());
         display.displayInfoCard(allies, ennemies, xmouse, ymouse);
+
+        fight.decreaseWait();
 
         SDL_PollEvent(&evenements);
         switch(evenements.type)
@@ -75,6 +78,9 @@ int main(int argc, char** argv)
                         break;
                     case SDLK_SPACE:
                         fight.shiftAction(allies, ennemies, map.getMapInt(), map.getLig(), map.getCol());
+                        break;
+                    case SDLK_RETURN:
+                        fight.switchTeams(allies, ennemies);
                         break;
                 }
                 case SDL_MOUSEBUTTONDOWN:

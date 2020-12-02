@@ -11,17 +11,18 @@ using namespace std;
 
 Combat::Combat()
 {
+    m_wait = 0;
 }
 
 void Combat::move(vector<Personnage> &allies, vector<Personnage> &ennemies, bool physicalFrame, int dir, int** map, int lig, int col)
 {
     for (unsigned i = 0; i < allies.size(); i++)
     {
-        if (!allies[i].getWait() && allies[i].getState()>=0 && physicalFrame && allies[i].getState() != 5)
+        if (!allies[i].getWait() && allies[i].getState()>=0 && allies[i].getState() != 5)
         {
             allies[i].walk(dir, createColli(allies, ennemies, map, lig, col, i), lig, col);
         }
-        else if (!allies[i].getWait() && allies[i].getState() >= 0 && physicalFrame && allies[i].getState() == 5)
+        else if (!allies[i].getWait() && allies[i].getState() >= 0 && allies[i].getState() == 5)
         {
             allies[i].setFacing(map, lig, col);
         }
@@ -80,21 +81,54 @@ void Combat::select(vector<Personnage> &allies, int xmouse, int ymouse)
 
 void Combat::shiftAction(vector<Personnage>& allies, vector<Personnage>& ennemies, int** map, int lig, int col)
 {
-    for (unsigned i = 0; i < allies.size(); i++)
+    if (m_wait == 0)
     {
-        if (allies[i].getState() >= 0 && allies[i].getState() != 5)
+        for (unsigned i = 0; i < allies.size(); i++)
         {
-            allies[i].setState(5);
-            allies[i].setFacing(map, lig, col);
-        }
-        else if (allies[i].getState() == 5)
-        {
-            for (Personnage & ennemy : ennemies)
+            if (allies[i].getState() >= 0 && allies[i].getState() != 5)
             {
-                allies[i].attack(ennemy, map, lig, col);
+                allies[i].setState(5);
+                allies[i].setFacing(map, lig, col);
             }
-            
-            allies[i].setState(0);
+            else if (allies[i].getState() == 5)
+            {
+                for (Personnage& ennemy : ennemies)
+                {
+                    allies[i].attack(ennemy, map, lig, col);
+                }
+
+                allies[i].decreaseMana();
+                allies[i].setState(0);
+            }
         }
+
+        setWait(10);
     }
+}
+
+void Combat::switchTeams(vector<Personnage> &allies, vector<Personnage> &ennemies)
+{
+    if (m_wait == 0)
+    {
+        vector<Personnage> temp = allies;
+        allies.clear();
+        allies = ennemies;
+        ennemies.clear();
+        ennemies = temp;
+        temp.clear();
+        setWait(20);
+    }
+}
+
+void Combat::decreaseWait()
+{
+    if (m_wait > 0)
+    {
+        m_wait--;
+    }
+}
+
+void Combat::setWait(int wait)
+{
+    m_wait = wait;
 }

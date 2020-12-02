@@ -31,6 +31,12 @@ private:
     SDL_Window* m_window;
     SDL_Renderer* m_renderer;
     TTF_Font* m_font16;
+    TTF_Font* m_font8;
+    SDL_Texture* m_infoCard;
+    SDL_Texture* m_underBar;
+    SDL_Texture* m_bar;
+    SDL_Texture* m_mana;
+    SDL_Texture* m_blackMana;
     SDL_Texture* m_blueMageTexture;
     SDL_Texture* m_redMageTexture;
     SDL_Texture* m_background;

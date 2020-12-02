@@ -18,8 +18,9 @@ public:
     void setFrame();
     void displayTerrain(int** mapTerrain, int lig, int col);
     void displayCharacters(vector<Personnage> &allies, vector<Personnage> &ennemies);
+    void displaySpellRange(vector<Personnage> &allies, int** map, int lig, int col);
     void displayInfoCard(vector<Personnage> &allies, vector<Personnage> &ennemies, int xmouse, int ymouse);
-    void createInfoCard(Personnage perso, int pos);
+    void createInfoCard(Personnage &perso, int pos);
     SDL_Renderer* getRenderer() const;
     TTF_Font* getFontDmg() const;
     bool getPhysicalFrame() const;

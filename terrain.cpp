@@ -27,17 +27,6 @@ int** Terrain::getMapInt() const
     return m_map;
 }
 
-/*int** Terrain::getMapColli(vector<Personnage> allies, vector<Personnage> ennemies)
-{
-    for (unsigned i = 0; i < m_lig; i++)
-    {
-        for (unsigned j = 0; j < m_col; j++)
-        {
-
-        }
-    }
-}*/
-
 int Terrain::getLig() const 
 {
     return m_lig;
@@ -50,7 +39,7 @@ int Terrain::getCol() const
 
 void Terrain::desallouer()
 {
-    desallouer_tab_2D(m_map, m_lig);
-    desallouer_tab_2D(m_mapChar, m_lig);
+    desallouer_tab_2D(m_map, m_col);
+    desallouer_tab_2D(m_mapChar, m_col);
 }
 

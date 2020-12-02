@@ -13,28 +13,28 @@ public:
     Personnage(int pv, Spell spell, char* nom, int x, int y);
     Personnage(Personnage const& copie);
     void recevoirDegats(int nbDegats);
-    bool attaquer(Personnage &cible);
+    void attack(Personnage &cible, int** map, int lig, int col);
     SDL_Rect afficherDegats(int texteW, int texteH);
     void deplacer(int x, int y);
     void walk(int direction, int** mapTerrain, int lig, int col);
     void heal(int qteHeal);
     SDL_Rect getCoord() const;
     bool estVivant() const;
-    void afficherEtat() const;
-    void afficherSelect(SDL_Renderer* renderer) const;
-    bool getAgro() const;
     int getHurt() const;
     int getState() const;
     int getHp() const;
     int getMaxHp() const;
     char* getName() const;
     int getWait() const;
-    void switchMode();
+    int getFacing() const;
+    int getFacingMax() const;
     SDL_Rect afficherPersoBarre(bool phy_frame);
     void setState(int state);
     void setWait(int temps);
+    void setFacing(int** map, int lig, int col);
     void decreaseWait();
-    void desallouer();
+    vector<int**> spellGrid(int** map, int lig, int col);
+    ~Personnage();
 
 private:
     int m_vie;
@@ -43,14 +43,12 @@ private:
     char* m_nom;
     int m_pos[2];
     Spell m_spell;
-    bool m_agro;
     int m_hurt;
-    int m_cible[2];
     int m_dgtAnim;
     int m_frameIdle;
     int m_state;
-    bool m_mouvement;
     int m_wait;
+    int m_facing;
 };
 
 #endif // PERSONNAGE_H_INCLUDED

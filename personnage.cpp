@@ -3,6 +3,7 @@
 #include <SDL2/SDL_ttf.h>
 #include "personnage.h"
 #include "fonctions_SDL.h"
+#include "fonctions_fichier.h"
 
 using namespace std;
 
@@ -15,15 +16,12 @@ Personnage::Personnage(int pv, Spell spell, char* nom)
     m_nom = nom;
     m_pos[0] = 0;
     m_pos[1] = 0;
-    m_agro = false;
-    m_cible[0] = 0;
-    m_cible[1] = 0;
     m_hurt = false;
     m_dgtAnim = 0;
     m_frameIdle = 0;
     m_state = -1;
-    m_mouvement = false;
     m_wait = false;
+    m_facing = 0;
 }
 
 Personnage::Personnage(int pv, Spell spell, char* nom, int x, int y)
@@ -35,15 +33,12 @@ Personnage::Personnage(int pv, Spell spell, char* nom, int x, int y)
     m_nom = nom;
     m_pos[0] = x;
     m_pos[1] = y;
-    m_agro = false;
-    m_cible[0] = 0;
-    m_cible[1] = 0;
     m_hurt = false;
     m_dgtAnim = 0;
     m_frameIdle = 0;
     m_state = -1;
-    m_mouvement = false;
     m_wait = false;
+    m_facing = 0;
 }
 
 Personnage::Personnage(Personnage const& copie)
@@ -55,15 +50,12 @@ Personnage::Personnage(Personnage const& copie)
     m_nom = copie.m_nom;
     m_pos[0] = copie.m_pos[0];
     m_pos[1] = copie.m_pos[1];
-    m_agro = false;
-    m_cible[0] = 0;
-    m_cible[1] = 0;
     m_hurt = false;
     m_dgtAnim = 0;
     m_frameIdle = 0;
     m_state = -1;
-    m_mouvement = false;
     m_wait = false;
+    m_facing = 0;
 }
 
 void Personnage::recevoirDegats(int nbDegats)
@@ -78,15 +70,21 @@ void Personnage::recevoirDegats(int nbDegats)
     m_hurt = nbDegats;
 }
 
-bool Personnage::attaquer(Personnage &cible)
+void Personnage::attack(Personnage &cible, int** map, int lig, int col)
 {
-    if(m_cible[0] == cible.m_pos[0] && m_cible[1] == cible.m_pos[1])
+    int** mapTemp = m_spell.spellGrid(map, lig, col, m_pos[0], m_pos[1])[m_facing];
+    for (unsigned x = 0; x < col; x++)
     {
-        cible.recevoirDegats(m_spell.getDegats());
-        return true;
-    } else {
-        return false;
+        for (unsigned y = 0; y < lig; y++)
+        {
+            if (mapTemp[x][y] == 1 && cible.m_pos[0] == x && cible.m_pos[1] == y)
+            {
+                cible.recevoirDegats(m_spell.getDegats());
+            }
+        }
     }
+
+    desallouer_tab_2D(mapTemp, col);
 }
 
 SDL_Rect Personnage::afficherDegats(int texteW, int texteH)
@@ -121,28 +119,28 @@ void Personnage::walk(int direction, int** mapTerrain, int lig, int col)
     {
     case 0:
         m_pos[1]--;
-        if(m_pos[1] < 0 || mapTerrain[m_pos[1]][m_pos[0]] != 0)
+        if(m_pos[1] < 0 || mapTerrain[m_pos[0]][m_pos[1]] != 0)
         {
             m_pos[1]++;
         }
         break;
     case 1:
         m_pos[1]++;
-        if(m_pos[1] > lig-1 || mapTerrain[m_pos[1]][m_pos[0]] != 0)
+        if(m_pos[1] > lig-1 || mapTerrain[m_pos[0]][m_pos[1]] != 0)
         {
             m_pos[1]--;
         }
         break;
     case 2:
         m_pos[0]++;
-        if(m_pos[0] > col-1 || mapTerrain[m_pos[1]][m_pos[0]] != 0)
+        if(m_pos[0] > col-1 || mapTerrain[m_pos[0]][m_pos[1]] != 0)
         {
             m_pos[0]--;
         }
         break;
     case 3:
         m_pos[0]--;
-        if(m_pos[0] < 0 || mapTerrain[m_pos[1]][m_pos[0]] != 0)
+        if(m_pos[0] < 0 || mapTerrain[m_pos[0]][m_pos[1]] != 0)
         {
             m_pos[0]++;
         }
@@ -150,6 +148,7 @@ void Personnage::walk(int direction, int** mapTerrain, int lig, int col)
     }
     setState(direction + 1);
     setWait(5);
+    desallouer_tab_2D(mapTerrain, col);
 }
 
 void Personnage::heal(int qteHeal)
@@ -176,28 +175,6 @@ SDL_Rect Personnage::getCoord() const
 bool Personnage::estVivant() const
 {
     return m_vie>0;
-}
-
-void Personnage::afficherEtat() const
-{
-    cout << m_nom << " PV = " << m_vie << endl;
-}
-
-void Personnage::afficherSelect(SDL_Renderer* renderer) const
-{
-    SDL_Rect rect;
-    rect.x = m_cible[0]*64;
-    rect.y = m_cible[1]*64;
-    rect.w = 64;
-    rect.h = 64;
-
-    SDL_SetRenderDrawColor(renderer, 255, 0, 255, 255);
-    SDL_RenderDrawRect(renderer, &rect);
-}
-
-bool Personnage::getAgro() const
-{
-    return m_agro;
 }
 
 int Personnage::getHurt() const
@@ -230,14 +207,14 @@ int Personnage::getWait() const
     return m_wait;
 }
 
-void Personnage::switchMode()
+int Personnage::getFacing() const
 {
-    if(m_agro)
-    {
-        m_agro = false;
-    } else {
-        m_agro = true;
-    }
+    return m_facing;
+}
+
+int Personnage::getFacingMax() const
+{
+    return m_spell.getCycle();
 }
 
 SDL_Rect Personnage::afficherPersoBarre(bool phy_frame)
@@ -277,6 +254,39 @@ void Personnage::setWait(int temps)
     m_wait = temps;
 }
 
+void Personnage::setFacing(int** map, int lig, int col)
+{
+    m_facing = (m_facing + 1) % m_spell.getCycle();
+
+    int i = 0;
+    bool found = false;
+    int** mapTemp = allouer_tab_2DInt(lig, col);
+    while (!found || i >= getFacingMax())
+    {
+        mapTemp = spellGrid(map, lig, col)[m_facing];
+        for (unsigned x = 0; x < col; x++)
+        {
+            for (unsigned y = 0; y < lig; y++)
+            {
+                if (mapTemp[x][y] == 1)
+                {
+                    found = true;
+                }
+            }
+        }
+
+        if (!found)
+        {
+            m_facing = (m_facing + 1) % m_spell.getCycle();
+            i++;
+        }
+    }
+    
+    desallouer_tab_2D(mapTemp, col);
+
+    setWait(10);
+}
+
 void Personnage::decreaseWait()
 {
     if (m_wait > 0) {
@@ -284,7 +294,11 @@ void Personnage::decreaseWait()
     }
 }
 
-void Personnage::desallouer()
+vector<int**> Personnage::spellGrid(int** map, int lig, int col)
 {
-    
+    return m_spell.spellGrid(map, lig, col, m_pos[0], m_pos[1]);;
+}
+
+Personnage::~Personnage() 
+{
 }

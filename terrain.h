@@ -16,7 +16,6 @@ public:
     Terrain();
     Terrain(char* nom_map);
     int** getMapInt() const;
-    //int** getMapColli(vector<Personnage> allies, vector<Personnage> ennemies);
     int getLig() const;
     int getCol() const;
     void desallouer();

@@ -12,11 +12,12 @@ class Combat
 {
 public:
     Combat();
-    void switchMvtWait(bool physical_frame, int frameNum);
-    void move(vector<Personnage> &allies, bool physicalFrame, int dir, int** map, int lig, int col);
+    void move(vector<Personnage> &allies, vector<Personnage> &ennemies, bool physicalFrame, int dir, int** map, int lig, int col);
+    int** createColli(vector<Personnage> &allies, vector<Personnage> &ennemies, int** map, int lig, int col, int num);
+    void changeFacing(vector<Personnage>& allies, int direction);
     void select(vector<Personnage> &allies, int xmouse, int ymouse);
+    void shiftAction(vector<Personnage>& allies, vector<Personnage>& ennemies, int** map, int lig, int col);
 private:
-    bool m_mouvement;
 };
 
 #endif // COMBAT_H_INCLUDED

@@ -99,10 +99,10 @@ void Affichage::setFrame()
 
 void Affichage::displayTerrain(int** mapTerrain, int lig, int col)
 {
-    for(int i = 0 ; i < lig ; i++) {
-        m_rectPos.y = i*64;
-        for(int j = 0 ; j < col ; j++) {
-            m_rectPos.x = j*64;
+    for(int i = 0 ; i < col ; i++) {
+        m_rectPos.x = i*64;
+        for(int j = 0 ; j < lig ; j++) {
+            m_rectPos.y = j*64;
             SDL_RenderCopy(m_renderer, m_background, &m_rectTerrain[mapTerrain[i][j]], &m_rectPos);
         }
     }
@@ -154,10 +154,56 @@ void Affichage::displayCharacters(vector<Personnage> &allies, vector<Personnage>
                 SDL_RenderCopy(m_renderer, text, NULL, &rectText);
             }
             allies[i].decreaseWait();
-            if (allies[i].getWait() == 0 && allies[i].getState() >= 0 && m_physicalFrame)
+            if (allies[i].getWait() == 0 && allies[i].getState() >= 0 && m_physicalFrame && allies[i].getState() != 5)
             {
                 allies[i].setState(0);
             }
+        }
+    }
+}
+
+void Affichage::displaySpellRange(vector<Personnage> &allies, int** map, int lig, int col)
+{
+    for (unsigned i = 0; i < allies.size(); i++)
+    {
+        if (allies[i].getState() == 5)
+        {
+            vector<int**> spellGrid = allies[i].spellGrid(map, lig, col);
+            for (unsigned k = 0 ; k < allies[i].getFacingMax() ; k++)
+            {
+                for (int x = 0; x < col; x++)
+                {
+                    for (int y = 0; y < lig; y++)
+                    {
+                        if (spellGrid[k][x][y] > 0)
+                        {
+                            SDL_Rect rectSpellGrid;
+                            rectSpellGrid.x = x * 64;
+                            rectSpellGrid.y = y * 64;
+                            rectSpellGrid.w = 64;
+                            rectSpellGrid.h = 64;
+                            if (allies[i].getFacing() == k)
+                            {
+                                SDL_SetRenderDrawColor(m_renderer, 255, 0, 0, 255);
+                            }
+                            else {
+                                SDL_SetRenderDrawColor(m_renderer, 238, 130, 238, 255);
+                            }
+                            SDL_RenderDrawRect(m_renderer, &rectSpellGrid);
+                            SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);
+                        }
+                        
+                    }
+                }
+
+            }
+
+            for (auto spell : spellGrid)
+            {
+                desallouer_tab_2D(spell, col);
+            }
+            spellGrid.clear();
+            
         }
     }
 }
@@ -173,7 +219,7 @@ void Affichage::displayInfoCard(vector<Personnage> &allies, vector<Personnage> &
             {
                 createInfoCard(allies[i], 1);
             } else {
-                createInfoCard(allies[i], 1);
+                createInfoCard(allies[i], 0);
             }
             m_found = true;
         }
@@ -192,28 +238,9 @@ void Affichage::displayInfoCard(vector<Personnage> &allies, vector<Personnage> &
             m_found = true;
         }
     }
-
-
-    for (int i = 0 ; i < allies.size() ; i++)
-    {
-        if(allies[i].getState() >= 0 && !m_found)
-        {
-            if(xmouse < 256 && ymouse < 128)
-            {
-                createInfoCard(allies[i], 1);
-            } else {
-                if(allies[i].getCoord().x < 256 && allies[i].getCoord().y < 128)
-                {
-                    createInfoCard(allies[i], 1);
-                } else {
-                    createInfoCard(allies[i], 0);
-                }
-            }
-        }
-    }
 }
 
-void Affichage::createInfoCard(Personnage perso, int pos) {
+void Affichage::createInfoCard(Personnage &perso, int pos) {
     if (perso.estVivant())
     {
         SDL_SetRenderDrawColor(m_renderer, 160, 82, 45, 255);

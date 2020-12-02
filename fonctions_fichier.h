@@ -12,4 +12,6 @@ int** transfoCharToInt(char** tabChar, int lig, int col);
 int** allouer_tab_2DInt(int n, int m);
 void desallouer_tab_2D(int** tab, int n);
 
+void lire_tab(int** tab, int lig, int col);
+
 #endif // FONCTIONS_FICHIER_H_INCLUDED

@@ -2,11 +2,7 @@
 #define TERRAIN_H_INCLUDED
 
 #include <iostream>
-#include <vector>
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_ttf.h>
-#include "personnage.h"
-#include "spell.h"
+#include "fonctions_fichier.h"
 
 using namespace std;
 
@@ -14,17 +10,11 @@ class Terrain
 {
 public:
     Terrain();
-    Terrain(char* nom_map);
-    int** getMapInt() const;
-    int getLig() const;
-    int getCol() const;
-    void desallouer();
+    Terrain(const string mapName);
+    MaptabP getMapInt();
+    ~Terrain();
 private:
-
-    char** m_mapChar;
-    int** m_map;
-    int m_lig;
-    int m_col;
+    MaptabP m_map;
 };
 
 #endif // TERRAIN_H_INCLUDED

@@ -1,17 +1,31 @@
 #ifndef FONCTIONS_FICHIER_H_INCLUDED
 #define FONCTIONS_FICHIER_H_INCLUDED
 
-char** allouer_tab_2D(int n, int m);
-void desallouer_tab_2D(char** tab, int m);
-void taille_fichier(const char* nomFichier, int* nbLig, int* nbCol);
-char** lire_fichier(const char* nomFichier);
+#include <string>
 
-void ecrire_fichier(const char* nomFichier, char** tab, int n, int m);
 
-int** transfoCharToInt(char** tabChar, int lig, int col);
-int** allouer_tab_2DInt(int n, int m);
-void desallouer_tab_2D(int** tab, int n);
+typedef struct s_map {
+	int lig; 
+	int col;
+	int** mapInt;
+} MaptabP;
 
-void lire_tab(int** tab, int lig, int col);
+typedef struct s_mapChar {
+	int lig;
+	int col;
+	char** mapInt;
+} MapcharP;
+
+MapcharP allocateChar(int n, int m);
+void deallocate(MapcharP& map);
+MaptabP allocateInt(int n, int m);
+void deallocate(MaptabP* map);
+
+void readMap(const MaptabP* map);
+
+void sizeFile(std::string nomFichier, int* nbLig, int* nbCol);
+MaptabP readFile(std::string nomFichier);
+
+MaptabP& transfoCharToInt(MapcharP &tabChar);
 
 #endif // FONCTIONS_FICHIER_H_INCLUDED

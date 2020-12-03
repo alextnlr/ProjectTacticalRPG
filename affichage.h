@@ -1,9 +1,6 @@
 #ifndef AFFICHAGE_H_INCLUDED
 #define AFFICHAGE_H_INCLUDED
 
-#include <vector>
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_ttf.h>
 #include "personnage.h"
 
 using namespace std;
@@ -16,29 +13,33 @@ public:
     void clearRenderer() const;
     void displayRenderer() const;
     void setFrame();
-    void displayTerrain(int** mapTerrain, int lig, int col);
-    void displayCharacters(vector<Personnage> &allies, vector<Personnage> &ennemies);
-    void displaySpellRange(vector<Personnage> &allies, int** map, int lig, int col);
-    void displayInfoCard(vector<Personnage> &allies, vector<Personnage> &ennemies, int xmouse, int ymouse);
+    void displayTerrain(const MaptabP *map);
+    void displayCharacters(vector<Personnage> &persos);
+    void displayMenu(vector<Personnage> &persos);
+    void displaySpellRange(vector<Personnage> &persos, const MaptabP *map);
+    bool displayTeam(int team);
+    void displayInfoCard(vector<Personnage> &persos, int xmouse, int ymouse);
     void createInfoCard(Personnage &perso, int pos);
-    SDL_Renderer* getRenderer() const;
-    TTF_Font* getFontDmg() const;
-    bool getPhysicalFrame() const;
     void desallouer();
 private:
     int m_widthWindow;
     int m_heightWindow;
+    int m_currentTeam;
+    int m_timerShowTeam;
     SDL_Window* m_window;
     SDL_Renderer* m_renderer;
+    TTF_Font* m_font64;
     TTF_Font* m_font16;
     TTF_Font* m_font8;
     SDL_Texture* m_infoCard;
+    SDL_Texture* m_menu;
     SDL_Texture* m_underBar;
     SDL_Texture* m_bar;
     SDL_Texture* m_mana;
     SDL_Texture* m_blackMana;
     SDL_Texture* m_blueMageTexture;
     SDL_Texture* m_redMageTexture;
+    SDL_Texture* m_endMageTexture;
     SDL_Texture* m_background;
     bool m_physicalFrame;
     int m_frameNum;

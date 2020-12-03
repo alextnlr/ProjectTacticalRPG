@@ -1,23 +1,22 @@
 #ifndef PERSONNAGE_H_INCLUDED
 #define PERSONNAGE_H_INCLUDED
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_ttf.h>
-
+#include "fonctions_SDL.h"
 #include "spell.h"
 
 class Personnage
 {
 public:
-    Personnage(int pv, Spell spell, char* nom, int team);
-    Personnage(int pv, Spell spell, char* nom, int team, int x, int y);
+    Personnage(int pv, vector<Spell> spells, string nom, int team);
+    Personnage(int pv, vector<Spell> spells, string nom, int team, int x, int y);
     Personnage(Personnage const& copie);
     void recevoirDegats(int nbDegats);
-    void attack(Personnage &cible, int** map, int lig, int col);
+    void attack(Personnage &cible, const MaptabP *map);
+    void activateInEffect();
     void decreaseMana();
     SDL_Rect afficherDegats(int texteW, int texteH);
     void deplacer(int x, int y);
-    void walk(int direction, int** mapTerrain, int lig, int col);
+    void walk(int direction, MaptabP *map);
     void heal(int qteHeal);
     SDL_Rect getCoord() const;
     bool estVivant() const;
@@ -26,26 +25,33 @@ public:
     int getHp() const;
     int getMaxHp() const;
     int getMana() const;
-    char* getName() const;
+    string getName() const;
     int getTeam() const;
+    bool getEnd() const;
     int getWait() const;
     int getFacing() const;
     int getFacingMax() const;
+    string getSpellName(int no);
+    void recoverMana(int nbMana);
     SDL_Rect afficherPersoBarre(bool phy_frame);
     void setState(int state);
     void setWait(int temps);
-    void setFacing(int** map, int lig, int col);
+    void setFacing(const MaptabP *map);
     void decreaseWait();
-    vector<int**> spellGrid(int** map, int lig, int col);
-    ~Personnage();
+    void newTurn();
+    void endTurn();
+    int getSelectedSpell() const;
+    int getMaxSpell() const;
+    void selectSpell(int select);
+    vector<MaptabP> spellGrid(const MaptabP *map);
 
 private:
     int m_vie;
     int m_vieMax;
     int m_ptsMagie;
-    char* m_nom;
+    string m_nom;
     int m_pos[2];
-    Spell m_spell;
+    vector<Spell> m_spells;
     int m_hurt;
     int m_dgtAnim;
     int m_frameIdle;
@@ -53,6 +59,8 @@ private:
     int m_wait;
     int m_facing;
     int m_team;
+    int m_selectedSpell;
+    bool m_end;
 };
 
 #endif // PERSONNAGE_H_INCLUDED

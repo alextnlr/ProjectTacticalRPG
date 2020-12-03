@@ -3,87 +3,79 @@
 
 using namespace std;
 
-char** allouer_tab_2D(int n, int m) {
-    char** tableau = new char*[m];
-    if(tableau == nullptr) {
-        cout << "Echec de l'allocation" << endl;
-        exit(EXIT_FAILURE);
-    }
-
-    for (unsigned i = 0 ; i < m ; i++) {
-        tableau[i] = new char[n];
-        if(tableau[i]==nullptr) {
-            cout << "Echec de l'allocation\n" << endl;
-            exit(EXIT_FAILURE);
-        }
-    }
-
-    for(unsigned x = 0 ; x < m ; x++) {
-        for(unsigned y = 0 ; y < n ; y++) {
-            tableau[x][y] = ' ';
-        }
-    }
-
-    return tableau;
-}
-
-int** allouer_tab_2DInt(int n, int m)
+MapcharP allocateChar(int n, int m) 
 {
-    int** tableau = new int*[m];
-    if(tableau == nullptr) {
-        cout << "Echec de l'allocation" << endl;
-        exit(EXIT_FAILURE);
-    }
+    MapcharP map;
+    map.lig = n; 
+    map.col = m;
 
-    for (unsigned i = 0 ; i < m ; i++) {
-        tableau[i] = new int[n];
-        if(tableau[i]==nullptr) {
-            cout << "Echec de l'allocation\n" << endl;
-            exit(EXIT_FAILURE);
-        }
-    }
+    map.mapInt = new char*[m];
 
-    for(unsigned i = 0 ; i < m ; i++) {
-        for(unsigned j = 0 ; j < n ; j++) {
-            tableau[i][j] = 0;
-        }
-    }
-
-    return tableau;
-}
-
-void desallouer_tab_2D(char** tab, int n) {
-
-    for(unsigned i = 0 ; i < n ; i++) {
-        delete[] tab[i];
-    }
-
-    delete [] tab;
-}
-
-void desallouer_tab_2D(int** tab, int n) {
-
-    for(unsigned i = 0 ; i < n ; i++) {
-        delete[] tab[i];
-    }
-
-    delete [] tab;
-}
-
-void lire_tab(int** tab, int lig, int col) {
-    for (int y = 0; y < lig; y++)
+    for (unsigned i = 0; i < m; i++)
     {
-        for (int x = 0; x < col; x++)
+        map.mapInt[i] = new char[n];
+    }
+
+    return map;
+}
+
+void deallocate(MapcharP &map)
+{
+    for (unsigned i = 0; i < map.col; i++)
+    {
+        delete[] map.mapInt[i];
+    }
+    delete[] map.mapInt;
+}
+
+MaptabP allocateInt(int n, int m)
+{
+    MaptabP map;
+    map.lig = n; 
+    map.col = m;
+
+    map.mapInt = new int*[map.col];
+
+    for (unsigned i = 0; i < m; i++)
+    {
+        map.mapInt[i] = new int[n];
+    }
+
+    for (unsigned x = 0; x < m; x++)
+    {
+        for (unsigned y = 0; y < n; y++)
         {
-            cout << tab[x][y] << " ";
+            map.mapInt[x][y] = 0;
+        }
+    }
+
+    return map;
+}
+
+void deallocate(MaptabP *map)
+{
+        for (unsigned i = 0; i < map->col; i++)
+        {
+            delete[] map->mapInt[i];
+        }
+        delete[] map->mapInt;
+}
+
+void readMap(const MaptabP *map) 
+{
+    for (int y = 0; y < map->lig; y++)
+    {
+        for (int x = 0; x < map->col; x++)
+        {
+            cout << map->mapInt[x][y] << " ";
         }
         cout << endl;
     }
 }
 
-void taille_fichier(const char* nomFichier, int* nbLig, int* nbCol) {
+void sizeFile(const string nomFichier, int* nbLig, int* nbCol) {
     FILE* fichier = nullptr;
-    fopen_s(&fichier,nomFichier,"r");
+    fopen_s(&fichier,nomFichier.c_str(),"r");
     if(fichier == nullptr) {
         cout << "Echec de l'ouverture" << endl;
         exit(EXIT_FAILURE);
@@ -109,57 +101,42 @@ void taille_fichier(const char* nomFichier, int* nbLig, int* nbCol) {
     fclose(fichier);
 }
 
-char** lire_fichier(const char* nomFichier) {
+MaptabP readFile(const string nomFichier) {
 
     FILE* fichier = nullptr;
-    fopen_s(&fichier,nomFichier,"r");
+    fopen_s(&fichier,nomFichier.c_str(),"r");
     if(fichier == nullptr) {
         cout << "Echec de l'ouverture" << endl;
         exit(EXIT_FAILURE);
     }
 
     int n=0, m=0;
-    taille_fichier(nomFichier, &n, &m);
-    char** tab = allouer_tab_2D(n,m);
+    sizeFile(nomFichier, &n, &m);
+    MapcharP map = allocateChar(n,m);
     char chaine[40] = " ";
 
     for(unsigned i = 0 ; i < n ; i++) {
         fgets(chaine, 40, fichier);
         for(unsigned j = 0 ; j < m ; j++) {
-            if(isgraph(chaine[j])) {tab[j][i] = chaine[j];}
+            if(isgraph(chaine[j])) {map.mapInt[j][i] = chaine[j];}
         }
         for(unsigned j = 0 ; j<40 ; j++) {
             chaine[j] = ' ';
         }
     }
 
-    return tab;
+    MaptabP mapInt = transfoCharToInt(map);
+    deallocate(map);
+    return mapInt;
 }
 
-void ecrire_fichier(const char* nomFichier, char** tab, int n, int m) {
-
-    FILE* fichier = nullptr;
-    fopen_s(&fichier,nomFichier,"w");
-    if(fichier == nullptr) {
-        cout << "Echec de l'ouverture" << endl;
-        exit(EXIT_FAILURE);
-    }
-
-    for(unsigned i = 0 ; i < n ; i++) {
-        for(unsigned j = 0 ; j < m ; j++) {
-            fputc(tab[i][j],fichier);
-        }
-        fputc('\n',fichier);
-    }
-
-}
-
-int** transfoCharToInt(char** tabChar, int lig, int col)
+MaptabP& transfoCharToInt(MapcharP& tabChar)
 {
-    int** tabInt = allouer_tab_2DInt(lig, col);
-    for(int i = 0 ; i < col ; i++) {
-        for(int j = 0 ; j < lig ; j++) {
-            tabInt[i][j] = tabChar[i][j] - '0';
+    MaptabP tabInt = allocateInt(tabChar.lig, tabChar.col);
+
+    for (int i = 0; i < tabChar.col; i++) {
+        for (int j = 0; j < tabChar.lig; j++) {
+            tabInt.mapInt[i][j] = tabChar.mapInt[i][j] - '0';
         }
     }
     return tabInt;

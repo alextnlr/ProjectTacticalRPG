@@ -1,17 +1,16 @@
-#include <iostream>
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_ttf.h>
 #include "personnage.h"
-#include "fonctions_SDL.h"
-#include "fonctions_fichier.h"
 
 using namespace std;
 
-Personnage::Personnage(int pv, Spell spell, char* nom, int team)
+Personnage::Personnage(int pv, vector<Spell> spells, string nom, int team)
 {
     m_vieMax = pv;
     m_vie = m_vieMax;
-    m_spell = spell;
+    m_spells.push_back(Spell());
+    for (Spell &spell : spells)
+    {
+        m_spells.push_back(spell);
+    }
     m_team = team;
     m_ptsMagie = 5;
     m_nom = nom;
@@ -23,13 +22,19 @@ Personnage::Personnage(int pv, Spell spell, char* nom, int team)
     m_state = -1;
     m_wait = false;
     m_facing = 0;
+    m_end = false;
+    m_selectedSpell = 0;
 }
 
-Personnage::Personnage(int pv, Spell spell, char* nom, int team, int x, int y)
+Personnage::Personnage(int pv, vector<Spell> spells, string nom, int team, int x, int y)
 {
     m_vieMax = pv;
     m_vie = m_vieMax;
-    m_spell = spell;
+    m_spells.push_back(Spell());
+    for (Spell& spell : spells)
+    {
+        m_spells.push_back(spell);
+    }
     m_team = team;
     m_ptsMagie = 5;
     m_nom = nom;
@@ -41,13 +46,15 @@ Personnage::Personnage(int pv, Spell spell, char* nom, int team, int x, int y)
     m_state = -1;
     m_wait = false;
     m_facing = 0;
+    m_end = false;
+    m_selectedSpell = 0;
 }
 
 Personnage::Personnage(Personnage const& copie)
 {
     m_vie = copie.m_vie;
     m_vieMax = copie.m_vieMax;
-    m_spell = copie.m_spell;
+    m_spells = copie.m_spells;
     m_team = copie.m_team;
     m_ptsMagie = copie.m_ptsMagie;
     m_nom = copie.m_nom;
@@ -59,6 +66,8 @@ Personnage::Personnage(Personnage const& copie)
     m_state = -1;
     m_wait = false;
     m_facing = 0;
+    m_end = false;
+    m_selectedSpell = 0;
 }
 
 void Personnage::recevoirDegats(int nbDegats)
@@ -73,28 +82,41 @@ void Personnage::recevoirDegats(int nbDegats)
     m_hurt = nbDegats;
 }
 
-void Personnage::attack(Personnage &cible, int** map, int lig, int col)
+void Personnage::attack(Personnage &cible, const MaptabP *map)
 {
-    int** mapTemp = m_spell.spellGrid(map, lig, col, m_pos[0], m_pos[1])[m_facing];
-    for (unsigned x = 0; x < col; x++)
+    MaptabP mapTemp = m_spells[m_selectedSpell].spellGrid(map, m_pos[0], m_pos[1])[m_facing];
+    for (unsigned x = 0; x < map->col; x++)
     {
-        for (unsigned y = 0; y < lig; y++)
+        for (unsigned y = 0; y < map->lig; y++)
         {
-            if (mapTemp[x][y] == 1 && cible.m_pos[0] == x && cible.m_pos[1] == y)
+            if (mapTemp.mapInt[x][y] == 1 && cible.m_pos[0] == x && cible.m_pos[1] == y)
             {
-                cible.recevoirDegats(m_spell.getDegats());
+                cible.recevoirDegats(m_spells[m_selectedSpell].getDegats());
             }
         }
     }
+    deallocate(&mapTemp);
+}
 
-    desallouer_tab_2D(mapTemp, col);
+void Personnage::activateInEffect()
+{
+    switch (m_spells[m_selectedSpell].activateInEffect())
+    {
+    case 1:
+        recoverMana(m_spells[m_selectedSpell].getPowerInEffect());
+        break;
+    case 2:
+        heal(m_spells[m_selectedSpell].getPowerInEffect());
+    default:
+        break;
+    }
 }
 
 void Personnage::decreaseMana()
 {
     if (m_ptsMagie > 0)
     {
-        m_ptsMagie -= m_spell.getCost();
+        m_ptsMagie -= m_spells[m_selectedSpell].getCost();
     }
 }
 
@@ -124,34 +146,34 @@ void Personnage::deplacer(int x, int y)
     m_pos[1] = y;
 }
 
-void Personnage::walk(int direction, int** mapTerrain, int lig, int col)
+void Personnage::walk(int direction, MaptabP *map)
 {
     switch(direction)
     {
     case 0:
         m_pos[1]--;
-        if(m_pos[1] < 0 || mapTerrain[m_pos[0]][m_pos[1]] != 0)
+        if(m_pos[1] < 0 || map->mapInt[m_pos[0]][m_pos[1]] != 0)
         {
             m_pos[1]++;
         }
         break;
     case 1:
         m_pos[1]++;
-        if(m_pos[1] > lig-1 || mapTerrain[m_pos[0]][m_pos[1]] != 0)
+        if(m_pos[1] > map->lig-1 || map->mapInt[m_pos[0]][m_pos[1]] != 0)
         {
             m_pos[1]--;
         }
         break;
     case 2:
         m_pos[0]++;
-        if(m_pos[0] > col-1 || mapTerrain[m_pos[0]][m_pos[1]] != 0)
+        if(m_pos[0] > map->col-1 || map->mapInt[m_pos[0]][m_pos[1]] != 0)
         {
             m_pos[0]--;
         }
         break;
     case 3:
         m_pos[0]--;
-        if(m_pos[0] < 0 || mapTerrain[m_pos[0]][m_pos[1]] != 0)
+        if(m_pos[0] < 0 || map->mapInt[m_pos[0]][m_pos[1]] != 0)
         {
             m_pos[0]++;
         }
@@ -159,7 +181,6 @@ void Personnage::walk(int direction, int** mapTerrain, int lig, int col)
     }
     setState(direction + 1);
     setWait(5);
-    desallouer_tab_2D(mapTerrain, col);
 }
 
 void Personnage::heal(int qteHeal)
@@ -213,7 +234,7 @@ int Personnage::getMana() const
     return m_ptsMagie;
 }
 
-char* Personnage::getName() const
+string Personnage::getName() const
 {
     return m_nom;
 }
@@ -221,6 +242,11 @@ char* Personnage::getName() const
 int Personnage::getTeam() const
 {
     return m_team;
+}
+
+bool Personnage::getEnd() const
+{
+    return m_end;
 }
 
 int Personnage::getWait() const
@@ -235,7 +261,21 @@ int Personnage::getFacing() const
 
 int Personnage::getFacingMax() const
 {
-    return m_spell.getCycle();
+    return m_spells[m_selectedSpell].getCycle();
+}
+
+string Personnage::getSpellName(int no)
+{
+    return m_spells[no].getName();
+}
+
+void Personnage::recoverMana(int nbMana)
+{
+    m_ptsMagie += nbMana;
+    if (m_ptsMagie > 5)
+    {
+        m_ptsMagie = 5;
+    }
 }
 
 SDL_Rect Personnage::afficherPersoBarre(bool phy_frame)
@@ -243,13 +283,19 @@ SDL_Rect Personnage::afficherPersoBarre(bool phy_frame)
     SDL_Rect Frame;
     int trueFrame = m_frameIdle/3;
     Frame.x = 31*trueFrame;
-    if (m_state <= 0) {
+    if (m_state <= 0) 
+    {
         Frame.y = 0;
+    }
+    else if (m_state > 5)
+    {
+        Frame.y = 31 * 5;
     }
     else
     {
         Frame.y = 31*m_state;
     }
+    
     Frame.w = 31;
     Frame.h = 31;
 
@@ -275,21 +321,21 @@ void Personnage::setWait(int temps)
     m_wait = temps;
 }
 
-void Personnage::setFacing(int** map, int lig, int col)
+void Personnage::setFacing(const MaptabP *map)
 {
-    m_facing = (m_facing + 1) % m_spell.getCycle();
+    m_facing = (m_facing + 1) % m_spells[m_selectedSpell].getCycle();
 
     int i = 0;
     bool found = false;
-    int** mapTemp = allouer_tab_2DInt(lig, col);
+    MaptabP mapTemp = allocateInt(map->lig, map->col);
     while (!found || i >= getFacingMax())
     {
-        mapTemp = spellGrid(map, lig, col)[m_facing];
-        for (unsigned x = 0; x < col; x++)
+        mapTemp = spellGrid(map)[m_facing];
+        for (unsigned x = 0; x < map->col; x++)
         {
-            for (unsigned y = 0; y < lig; y++)
+            for (unsigned y = 0; y < map->lig; y++)
             {
-                if (mapTemp[x][y] == 1)
+                if (mapTemp.mapInt[x][y] == 1)
                 {
                     found = true;
                 }
@@ -298,14 +344,13 @@ void Personnage::setFacing(int** map, int lig, int col)
 
         if (!found)
         {
-            m_facing = (m_facing + 1) % m_spell.getCycle();
+            m_facing = (m_facing + 1) % m_spells[m_selectedSpell].getCycle();
             i++;
         }
     }
-    
-    desallouer_tab_2D(mapTemp, col);
 
     setWait(10);
+    deallocate(&mapTemp);
 }
 
 void Personnage::decreaseWait()
@@ -315,11 +360,41 @@ void Personnage::decreaseWait()
     }
 }
 
-vector<int**> Personnage::spellGrid(int** map, int lig, int col)
+void Personnage::newTurn()
 {
-    return m_spell.spellGrid(map, lig, col, m_pos[0], m_pos[1]);;
+    m_end = false;
 }
 
-Personnage::~Personnage() 
+void Personnage::endTurn()
 {
+    m_end = true;
+    setState(-1);
+}
+
+int Personnage::getSelectedSpell() const
+{
+    return m_selectedSpell;
+}
+
+int Personnage::getMaxSpell() const
+{
+    return m_spells.size();
+}
+
+void Personnage::selectSpell(int select)
+{
+    m_selectedSpell += select;
+    if (m_selectedSpell < 0)
+    {
+        m_selectedSpell++;
+    }
+    else if (m_selectedSpell >= getMaxSpell())
+    {
+        m_selectedSpell--;
+    }
+}
+
+vector<MaptabP> Personnage::spellGrid(const MaptabP *map)
+{
+    return m_spells[m_selectedSpell].spellGrid(map, m_pos[0], m_pos[1]);;
 }

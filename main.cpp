@@ -1,12 +1,6 @@
 #include <iostream>
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_ttf.h>
-#include <vector>
-#include "fonctions_fichier.h"
-#include "fonctions_SDL.h"
 #include "personnage.h"
 #include "terrain.h"
-#include "spell.h"
 #include "affichage.h"
 #include "combat.h"
 
@@ -21,16 +15,24 @@ int main(int argc, char** argv)
 
     Terrain map = Terrain();
 
-    Spell spark = Spell();
-    Spell boom = Spell((char*)"boom", 10, 1, 1);
+    Spell boom = Spell("Boom", 10, 1, 1);
+    Spell oof = Spell("Oof", 15, 1, 1);
+    Spell heal = Spell("Heal", 0, 2, 2, 2, 0, 10, 0);
+    Spell focus = Spell("Focus", 0, 2, 0, 1, 0, 2, 0);
 
-    vector<Personnage> allies;
-    allies.push_back(Personnage(60, spark, (char*)"Michel", 0,4,9));
-    allies.push_back(Personnage(40, boom, (char*)"Jean", 0, 2, 2));
+    vector<Spell> spells;
+    spells.push_back(boom);
+    spells.push_back(oof);
+    spells.push_back(heal);
+    spells.push_back(focus);
 
-    vector<Personnage> ennemies;
-    ennemies.push_back(Personnage(40, spark,(char*)"Thierry", 1, 4,6));
-    ennemies.push_back(Personnage(35, spark,(char*)"Henry", 1, 14,7));
+    vector<Personnage> persos;
+    persos.push_back(Personnage(60, spells, "Michel", 0,4,9));
+    persos.push_back(Personnage(40, spells, "Jean", 0, 2, 2));
+    persos.push_back(Personnage(40, spells, "Thierry", 1, 4,6));
+
+    spells.push_back(boom);
+    persos.push_back(Personnage(35, spells, "Henry", 1, 14,7));
 
     int xmouse;
     int ymouse;
@@ -38,6 +40,9 @@ int main(int argc, char** argv)
     SDL_Event evenements;
 
     bool end = false;
+    bool freeze = false;
+
+    MaptabP mapInt = map.getMapInt();
 
     //Boucle principale
     while(!end) {
@@ -47,10 +52,15 @@ int main(int argc, char** argv)
 
         display.setFrame();
 
-        display.displayTerrain(map.getMapInt(), map.getLig(), map.getCol());
-        display.displayCharacters(allies, ennemies);
-        display.displaySpellRange(allies, map.getMapInt(), map.getLig(), map.getCol());
-        display.displayInfoCard(allies, ennemies, xmouse, ymouse);
+        fight.autoNewTurn(persos);
+
+        display.displayTerrain(&mapInt);
+        display.displayCharacters(persos);
+        display.displaySpellRange(persos, &mapInt);
+        display.displayInfoCard(persos, xmouse, ymouse);
+        display.displayMenu(persos);
+        
+        freeze = display.displayTeam(fight.getTeam());
 
         fight.decreaseWait();
 
@@ -60,38 +70,44 @@ int main(int argc, char** argv)
             case SDL_QUIT:
                 end = 1; break;
             case SDL_KEYDOWN:
-                switch(evenements.key.keysym.sym)
+                if (!freeze)
                 {
+                    switch (evenements.key.keysym.sym)
+                    {
                     case SDLK_ESCAPE:
                         end = 1; break;
                     case SDLK_UP:
-                        fight.move(allies, ennemies, display.getPhysicalFrame(), 0, map.getMapInt(), map.getLig(), map.getCol());
+                        fight.move(persos, 0, &mapInt);
                         break;
                     case SDLK_DOWN:
-                        fight.move(allies, ennemies, display.getPhysicalFrame(), 1, map.getMapInt(), map.getLig(), map.getCol());
+                        fight.move(persos, 1, &mapInt);
                         break;
                     case SDLK_RIGHT:
-                        fight.move(allies, ennemies, display.getPhysicalFrame(), 2, map.getMapInt(), map.getLig(), map.getCol());
+                        fight.move(persos, 2, &mapInt);
                         break;
                     case SDLK_LEFT:
-                        fight.move(allies, ennemies, display.getPhysicalFrame(), 3, map.getMapInt(), map.getLig(), map.getCol());
+                        fight.move(persos, 3, &mapInt);
                         break;
                     case SDLK_SPACE:
-                        fight.shiftAction(allies, ennemies, map.getMapInt(), map.getLig(), map.getCol());
+                        fight.shiftAction(persos, &mapInt);
                         break;
                     case SDLK_RETURN:
-                        fight.switchTeams(allies, ennemies);
+                        fight.switchTeams(persos);
                         break;
+                    }
                 }
                 case SDL_MOUSEBUTTONDOWN:
                 {
-                    switch(evenements.button.button)
+                    if (!freeze)
                     {
+                        switch (evenements.button.button)
+                        {
                         case SDL_BUTTON_LEFT:
-                            fight.select(allies, xmouse, ymouse);
+                            fight.select(persos, xmouse, ymouse);
                             break;
                         case SDL_BUTTON_RIGHT:
                             break;
+                        }
                     }
                 }
         }
@@ -99,9 +115,6 @@ int main(int argc, char** argv)
         display.displayRenderer();
     }
 
-    //Quitter SDL
-
-    map.desallouer();
     display.desallouer();
 
     return 0;

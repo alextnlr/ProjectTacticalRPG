@@ -1,10 +1,3 @@
-#include <iostream>
-#include <vector>
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_ttf.h>
-#include "fonctions_fichier.h"
-#include "fonctions_SDL.h"
-#include "personnage.h"
 #include "combat.h"
 
 using namespace std;
@@ -12,52 +5,59 @@ using namespace std;
 Combat::Combat()
 {
     m_wait = 0;
+    m_player = 0;
 }
 
-void Combat::move(vector<Personnage> &allies, vector<Personnage> &ennemies, bool physicalFrame, int dir, int** map, int lig, int col)
+void Combat::move(vector<Personnage> &persos, int dir, const MaptabP *map)
 {
-    for (unsigned i = 0; i < allies.size(); i++)
+    for (unsigned i = 0; i < persos.size(); i++)
     {
-        if (!allies[i].getWait() && allies[i].getState()>=0 && allies[i].getState() != 5)
+        if (!persos[i].getWait() && persos[i].getState()>=0 && persos[i].getState() < 5)
         {
-            allies[i].walk(dir, createColli(allies, ennemies, map, lig, col, i), lig, col);
+            MaptabP mapInt = createColli(persos, map, i);
+            persos[i].walk(dir, &mapInt);
+            deallocate(&mapInt);
         }
-        else if (!allies[i].getWait() && allies[i].getState() >= 0 && allies[i].getState() == 5)
+        else if (!m_wait && persos[i].getState() >= 0 && persos[i].getState() == 5)
         {
-            allies[i].setFacing(map, lig, col);
+            if (dir == 1)
+            {
+                persos[i].selectSpell(1);
+            }
+            else if (dir == 0)
+            {
+                persos[i].selectSpell(-1);
+            }
+            setWait(10);
+        }
+        else if (!persos[i].getWait() && persos[i].getState() >= 0 && persos[i].getState() == 6)
+        {
+            persos[i].setFacing(map);
         }
     }
 }
 
-int** Combat::createColli(vector<Personnage> &allies, vector<Personnage> &ennemies, int** map, int lig, int col, int num)
+MaptabP Combat::createColli(vector<Personnage> &persos, const MaptabP *map, int num)
 {
-    int** colli = allouer_tab_2DInt(lig, col);
-    for (unsigned x = 0; x < col; x++)
+    MaptabP colli = allocateInt(map->lig, map->col);
+    for (unsigned x = 0; x < map->col; x++)
     {
-        for (unsigned y = 0; y < lig; y++)
+        for (unsigned y = 0; y < map->lig; y++)
         {
-            if (map[x][y])
+            if (map->mapInt[x][y] != 0)
             {
-                colli[x][y] = 1;
+                colli.mapInt[x][y] = 1;
             }
             else
             {
-                for (unsigned i = 0; i < allies.size(); i++)
+                for (unsigned i = 0; i < persos.size(); i++)
                 {
                     if (i != num) 
                     {
-                        if (allies[i].estVivant() && allies[i].getCoord().x / 64 == x && allies[i].getCoord().y / 64 == y)
+                        if (persos[i].estVivant() && persos[i].getCoord().x / 64 == x && persos[i].getCoord().y / 64 == y)
                         {
-                            colli[x][y] = 1;
+                            colli.mapInt[x][y] = 1;
                         }
-                    }
-                }
-
-                for (unsigned i = 0; i < ennemies.size(); i++)
-                {
-                    if (ennemies[i].estVivant() && ennemies[i].getCoord().x / 64 == x && ennemies[i].getCoord().y / 64 == y)
-                    {
-                        colli[x][y] = 1;
                     }
                 }
             }
@@ -67,56 +67,103 @@ int** Combat::createColli(vector<Personnage> &allies, vector<Personnage> &ennemi
     return colli;
 }
 
-void Combat::select(vector<Personnage> &allies, int xmouse, int ymouse)
+void Combat::select(vector<Personnage> &persos, int xmouse, int ymouse)
 {
-    for (unsigned i = 0; i < allies.size(); i++)
+    for (unsigned i = 0; i < persos.size(); i++)
     {
-        allies[i].setState(-1);
-        if (xmouse / 64 == allies[i].getCoord().x / 64 && ymouse / 64 == allies[i].getCoord().y / 64)
+        persos[i].setState(-1);
+        if (persos[i].getTeam() == m_player && xmouse / 64 == persos[i].getCoord().x / 64 && ymouse / 64 == persos[i].getCoord().y / 64 && persos[i].getEnd() == false)
         {
-            allies[i].setState(0);
+            persos[i].setState(0);
         }
     }
 }
 
-void Combat::shiftAction(vector<Personnage>& allies, vector<Personnage>& ennemies, int** map, int lig, int col)
+void Combat::deselect(vector<Personnage>& persos)
+{
+    for (unsigned i = 0; i < persos.size(); i++)
+    {
+        persos[i].setState(-1);
+    }
+}
+
+int Combat::getTeam() const
+{
+    return m_player;
+}
+
+void Combat::shiftAction(vector<Personnage>& persos, const MaptabP *map)
 {
     if (m_wait == 0)
     {
-        for (unsigned i = 0; i < allies.size(); i++)
+        for (unsigned i = 0; i < persos.size(); i++)
         {
-            if (allies[i].getState() >= 0 && allies[i].getState() != 5)
+            if (persos[i].getTeam() == m_player && persos[i].getState() >= 0 && persos[i].getState() < 5)
             {
-                allies[i].setState(5);
-                allies[i].setFacing(map, lig, col);
+                persos[i].setState(5);
             }
-            else if (allies[i].getState() == 5)
+            else if (persos[i].getTeam() == m_player && persos[i].getState() == 5)
             {
-                for (Personnage& ennemy : ennemies)
+                persos[i].setState(6);
+                persos[i].setFacing(map);
+            }
+            else if (persos[i].getTeam() == m_player && persos[i].getState() == 6)
+            {
+                for (unsigned k = 0; k < persos.size(); k++)
                 {
-                    allies[i].attack(ennemy, map, lig, col);
+                    if (k != i)
+                    {
+                        persos[i].attack(persos[k], map);
+                    }
                 }
-
-                allies[i].decreaseMana();
-                allies[i].setState(0);
+                persos[i].decreaseMana();
+                persos[i].activateInEffect();
+                persos[i].endTurn();
             }
+
         }
 
         setWait(10);
     }
 }
 
-void Combat::switchTeams(vector<Personnage> &allies, vector<Personnage> &ennemies)
+void Combat::switchTeams(vector<Personnage> &persos)
 {
     if (m_wait == 0)
     {
-        vector<Personnage> temp = allies;
-        allies.clear();
-        allies = ennemies;
-        ennemies.clear();
-        ennemies = temp;
-        temp.clear();
+        m_player = (m_player + 1) % 2;
+        deselect(persos);
+        for (Personnage & perso : persos)
+        {
+            perso.newTurn();
+        }
         setWait(20);
+    }
+}
+
+void Combat::autoNewTurn(vector<Personnage> &persos)
+{
+    int nbInTeam = 0;
+    for (Personnage & perso : persos)
+    {
+        if (perso.getTeam() == m_player)
+        {
+            nbInTeam++;
+        }
+    }
+
+    int nbEndTurn = 0;
+    for (Personnage & perso : persos)
+    {
+        if (perso.getEnd() && perso.getTeam() == m_player)
+        {
+            nbEndTurn++;
+        }
+    }
+
+    if (nbInTeam == nbEndTurn)
+    {
+        switchTeams(persos);
     }
 }
 

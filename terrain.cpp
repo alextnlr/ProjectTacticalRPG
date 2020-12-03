@@ -1,45 +1,23 @@
-#include <iostream>
-#include <vector>
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_ttf.h>
 #include "terrain.h"
-#include "fonctions_SDL.h"
-#include "fonctions_fichier.h"
 
 using namespace std;
 
 Terrain::Terrain()
 {
-    taille_fichier("terrain.txt", &m_lig, &m_col);
-    m_mapChar = lire_fichier("terrain.txt");
-    m_map = transfoCharToInt(m_mapChar,m_lig,m_col);
+    m_map = readFile("terrain.txt");
 }
 
-Terrain::Terrain(char* nom_map)
+Terrain::Terrain(const string mapName)
 {
-    taille_fichier(nom_map, &m_lig, &m_col);
-    m_mapChar = lire_fichier(nom_map);
-    m_map = transfoCharToInt(m_mapChar,m_lig,m_col);
+    m_map = readFile(mapName);
 }
 
-int** Terrain::getMapInt() const 
+MaptabP Terrain::getMapInt() 
 {
     return m_map;
 }
 
-int Terrain::getLig() const 
+Terrain::~Terrain()
 {
-    return m_lig;
+    deallocate(&m_map);
 }
-
-int Terrain::getCol() const
-{
-    return m_col;
-}
-
-void Terrain::desallouer()
-{
-    desallouer_tab_2D(m_map, m_col);
-    desallouer_tab_2D(m_mapChar, m_col);
-}
-

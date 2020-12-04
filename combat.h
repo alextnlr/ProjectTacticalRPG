@@ -14,7 +14,7 @@ public:
     void select(vector<Personnage> &persos, int xmouse, int ymouse);
     void deselect(vector<Personnage>& persos);
     int getTeam() const;
-    void shiftAction(vector<Personnage>& persos, const MaptabP *map);
+    int shiftAction(vector<Personnage>& persos, const MaptabP *map);
     void switchTeams(vector<Personnage> &persos);
     void autoNewTurn(vector<Personnage>& persos);
     void decreaseWait();

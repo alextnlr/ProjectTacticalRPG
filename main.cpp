@@ -1,4 +1,5 @@
 #include <iostream>
+#include <ctime>
 #include "personnage.h"
 #include "terrain.h"
 #include "affichage.h"
@@ -9,40 +10,45 @@ using namespace std;
 int main(int argc, char** argv)
 {
 
+    std::srand(std::time(nullptr));
+
     Affichage display = Affichage();
 
     Combat fight = Combat();
 
     Terrain map = Terrain();
 
-    Spell boom = Spell("Boom", 10, 1, 1);
-    Spell oof = Spell("Oof", 15, 1, 1);
-    Spell heal = Spell("Heal", 0, 2, 2, 2, 0, 10, 0);
-    Spell focus = Spell("Focus", 0, 2, 0, 1, 0, 2, 0);
+    Spell boom = Spell("Boom", "1d6+2", Line, 1);
+    Spell oof = Spell("Oof", "2d8+0", Line, 1);
+    Spell heal = Spell("Heal", "0d0+0", Self, 2, Heal, 15);
+    Spell focus = Spell("Focus", "0d0+0", Self, 0, Focus, 2);
+    Spell shockwave = Spell("Shockwave", "2d10+5", Shock, 2);
 
     vector<Spell> spells;
     spells.push_back(boom);
     spells.push_back(oof);
     spells.push_back(heal);
     spells.push_back(focus);
+    spells.push_back(shockwave);
 
     vector<Personnage> persos;
-    persos.push_back(Personnage(60, spells, "Michel", 0,4,9));
-    persos.push_back(Personnage(40, spells, "Jean", 0, 2, 2));
-    persos.push_back(Personnage(40, spells, "Thierry", 1, 4,6));
-
-    spells.push_back(boom);
-    persos.push_back(Personnage(35, spells, "Henry", 1, 14,7));
+    persos.push_back(Personnage(60, 12, spells, "Michel", 0,4,9));
+    persos.push_back(Personnage(40, 12, spells, "Jean", 0, 2, 2));
+    persos.push_back(Personnage(40, 12, spells, "Thierry", 1, 4,6));
+    persos.push_back(Personnage(35, 12, spells, "Henry", 1, 14,7));
 
     int xmouse;
     int ymouse;
 
-    SDL_Event evenements;
+    SDL_Event event;
 
     bool end = false;
     bool freeze = false;
+    bool waitTurn = false;
 
     MaptabP mapInt = map.getMapInt();
+
+    int roll = 0;
 
     //Boucle principale
     while(!end) {
@@ -52,27 +58,31 @@ int main(int argc, char** argv)
 
         display.setFrame();
 
-        fight.autoNewTurn(persos);
-
         display.displayTerrain(&mapInt);
         display.displayCharacters(persos);
         display.displaySpellRange(persos, &mapInt);
         display.displayInfoCard(persos, xmouse, ymouse);
         display.displayMenu(persos);
         
-        freeze = display.displayTeam(fight.getTeam());
+        waitTurn = display.displayDamages(persos, roll);
+        freeze = display.displayRoll(roll);
+        if (!waitTurn)
+        {
+            fight.autoNewTurn(persos);
+            freeze = display.displayTeam(fight.getTeam(), roll);
+        }
 
         fight.decreaseWait();
 
-        SDL_PollEvent(&evenements);
-        switch(evenements.type)
+        SDL_PollEvent(&event);
+        switch(event.type)
         {
             case SDL_QUIT:
                 end = 1; break;
             case SDL_KEYDOWN:
                 if (!freeze)
                 {
-                    switch (evenements.key.keysym.sym)
+                    switch (event.key.keysym.sym)
                     {
                     case SDLK_ESCAPE:
                         end = 1; break;
@@ -89,7 +99,7 @@ int main(int argc, char** argv)
                         fight.move(persos, 3, &mapInt);
                         break;
                     case SDLK_SPACE:
-                        fight.shiftAction(persos, &mapInt);
+                        roll = fight.shiftAction(persos, &mapInt);
                         break;
                     case SDLK_RETURN:
                         fight.switchTeams(persos);
@@ -100,7 +110,7 @@ int main(int argc, char** argv)
                 {
                     if (!freeze)
                     {
-                        switch (evenements.button.button)
+                        switch (event.button.button)
                         {
                         case SDL_BUTTON_LEFT:
                             fight.select(persos, xmouse, ymouse);

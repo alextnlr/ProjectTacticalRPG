@@ -40,6 +40,7 @@ Affichage::Affichage()
     }
     m_infoCard = charger_image_transparente("InfoCard.bmp", m_renderer, r, g, b);
     m_menu = charger_image_transparente("Menu.bmp", m_renderer, r, g, b);
+    m_d20 = charger_image_transparente("d20.bmp", m_renderer, r, g, b);
     if (m_infoCard == NULL || m_menu == NULL) {
         cout << "Erreur chargement texture info Card: " << SDL_GetError() << endl;
     }
@@ -74,6 +75,7 @@ Affichage::Affichage()
 
     m_currentTeam = 0;
     m_timerShowTeam = 60;
+    m_stockRoll = 0;
 }
 
 void Affichage::setRectTerrain(int nbColonnes, int nbLignes)
@@ -149,17 +151,6 @@ void Affichage::displayCharacters(vector<Personnage> &persos)
                 SDL_RenderDrawRect(m_renderer, &rectPos);
                 SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);
             }
-            if (persos[i].getHurt()) {
-                SDL_Color color = { 0,0,0,255 };
-                char dgt[3];
-                sprintf_s(dgt, "%i", persos[i].getHurt());
-                SDL_Texture* text = charger_texte(dgt, m_renderer, m_font16, color);
-                int texteW, texteH;
-                SDL_QueryTexture(text, NULL, NULL, &texteW, &texteH);
-                SDL_Rect rectText = persos[i].afficherDegats(texteW, texteH);
-                SDL_RenderCopy(m_renderer, text, NULL, &rectText);
-                SDL_DestroyTexture(text);
-            }
             persos[i].decreaseWait();
             if (persos[i].getWait() == 0 && persos[i].getState() >= 0 && m_physicalFrame && persos[i].getState() < 5)
             {
@@ -167,6 +158,89 @@ void Affichage::displayCharacters(vector<Personnage> &persos)
             }
         }
     }
+}
+
+bool Affichage::displayDamages(vector<Personnage>& persos, int roll)
+{
+    bool found = false;
+    for (Personnage & perso : persos)
+    {
+        if (perso.getHurt() && !roll) {
+            SDL_Color color = { 0,0,0,255 };
+            SDL_Texture* text = charger_texte(to_string(perso.getHurt()).c_str(), m_renderer, m_font16, color);
+            int texteW, texteH;
+            SDL_QueryTexture(text, NULL, NULL, &texteW, &texteH);
+            SDL_Rect rectText = perso.afficherDegats(texteW, texteH);
+            SDL_RenderCopy(m_renderer, text, NULL, &rectText);
+            SDL_DestroyTexture(text);
+            found = true;
+        }
+    }
+    if (found)
+    {
+        return true;
+    }
+    return false;
+}
+
+bool Affichage::displayRoll(int &roll)
+{
+    if (roll)
+    {
+        if (!m_timerShowRoll)
+        {
+            m_timerShowRoll = 90;
+        }
+        SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 150);
+        SDL_Rect blackScreen{ 0,0,m_widthWindow,m_heightWindow };
+        SDL_RenderFillRect(m_renderer, &blackScreen);
+        SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);
+
+        SDL_Texture* rollName;
+        int width, height;
+        SDL_Rect pos;
+
+        pos.x = m_widthWindow / 2 - 256 / 2;
+        pos.y = m_heightWindow / 2 - 256 / 2;
+        pos.w = 256;
+        pos.h = 256;
+        SDL_RenderCopy(m_renderer, m_d20, NULL, &pos);
+
+        SDL_Color color;
+        color = { 255, 255, 255, 255 };
+        if (m_timerShowRoll > 30)
+        {
+            int attackRoll = std::rand() % 20;
+            if (m_timerShowRoll%4 == 0)
+            {
+                m_stockRoll = attackRoll + 1;
+            }
+            rollName = charger_texte(to_string(m_stockRoll).c_str(), m_renderer, m_font64, color);
+        }
+        else
+        {
+            rollName = charger_texte(to_string(roll).c_str(), m_renderer, m_font64, color);
+        }
+
+        SDL_QueryTexture(rollName, NULL, NULL, &width, &height);
+
+        pos.x = m_widthWindow / 2 - width / 2;
+        pos.y = m_heightWindow / 2 - height / 2;
+        pos.w = width;
+        pos.h = height;
+
+        SDL_RenderCopy(m_renderer, rollName, NULL, &pos);
+
+        SDL_DestroyTexture(rollName);
+
+        m_timerShowRoll--;
+        if (m_timerShowRoll == 0)
+        {
+            roll = 0;
+        }
+    }
+
+    return (m_timerShowRoll > 0);
 }
 
 void Affichage::displayMenu(vector<Personnage> &persos)
@@ -197,9 +271,9 @@ void Affichage::displayMenu(vector<Personnage> &persos)
             int textW, textH, maxTextW;
 
             SDL_QueryTexture(text[0], NULL, NULL, &maxTextW, &textH);
-            for (unsigned j = 0; j < text.size(); j++)
+            for (unsigned j = 1; j < text.size(); j++)
             {
-                SDL_QueryTexture(text[0], NULL, NULL, &textW, &textH);
+                SDL_QueryTexture(text[j], NULL, NULL, &textW, &textH);
                 if (textW > maxTextW)
                 {
                     maxTextW = textW;
@@ -207,10 +281,10 @@ void Affichage::displayMenu(vector<Personnage> &persos)
             }
 
             SDL_Rect posBackground;
-            posBackground.w = maxTextW + 20;
-            posBackground.h = (textH + 5)*text.size() + 20;
-            posBackground.x = posText.x - 10;
-            posBackground.y = persos[i].getCoord().y - 10;
+            posBackground.w = maxTextW + 30;
+            posBackground.h = (20)*text.size() + textH + 20;
+            posBackground.x = posText.x - 15;
+            posBackground.y = persos[i].getCoord().y - 20;
 
             SDL_RenderCopy(m_renderer, m_menu, NULL, &posBackground);
 
@@ -277,9 +351,9 @@ void Affichage::displaySpellRange(vector<Personnage> &persos, const MaptabP *map
     }
 }
 
-bool Affichage::displayTeam(int team)
+bool Affichage::displayTeam(int team, int roll)
 {
-    if (team != m_currentTeam)
+    if (team != m_currentTeam && !roll)
     {
         m_timerShowTeam = 60;
         m_currentTeam = team;
@@ -436,6 +510,7 @@ void Affichage::desallouer()
     SDL_DestroyTexture(m_bar);
     SDL_DestroyTexture(m_underBar);
     SDL_DestroyTexture(m_infoCard);
+    SDL_DestroyTexture(m_d20);
     SDL_DestroyTexture(m_menu);
     SDL_DestroyTexture(m_mana);
     SDL_DestroyTexture(m_blackMana);

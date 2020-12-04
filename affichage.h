@@ -15,9 +15,11 @@ public:
     void setFrame();
     void displayTerrain(const MaptabP *map);
     void displayCharacters(vector<Personnage> &persos);
+    bool displayDamages(vector<Personnage>& persos, int roll);
+    bool displayRoll(int& roll);
     void displayMenu(vector<Personnage> &persos);
     void displaySpellRange(vector<Personnage> &persos, const MaptabP *map);
-    bool displayTeam(int team);
+    bool displayTeam(int team, int roll);
     void displayInfoCard(vector<Personnage> &persos, int xmouse, int ymouse);
     void createInfoCard(Personnage &perso, int pos);
     void desallouer();
@@ -26,6 +28,7 @@ private:
     int m_heightWindow;
     int m_currentTeam;
     int m_timerShowTeam;
+    int m_timerShowRoll;
     SDL_Window* m_window;
     SDL_Renderer* m_renderer;
     TTF_Font* m_font64;
@@ -37,6 +40,7 @@ private:
     SDL_Texture* m_bar;
     SDL_Texture* m_mana;
     SDL_Texture* m_blackMana;
+    SDL_Texture* m_d20;
     SDL_Texture* m_blueMageTexture;
     SDL_Texture* m_redMageTexture;
     SDL_Texture* m_endMageTexture;
@@ -48,6 +52,7 @@ private:
     vector<SDL_Rect> m_rectTerrain;
     bool m_found;
     int m_select;
+    int m_stockRoll;
 };
 
 #endif // AFFICHAGE_H_INCLUDED

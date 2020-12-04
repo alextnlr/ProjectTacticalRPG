@@ -32,7 +32,7 @@ void Combat::move(vector<Personnage> &persos, int dir, const MaptabP *map)
         }
         else if (!persos[i].getWait() && persos[i].getState() >= 0 && persos[i].getState() == 6)
         {
-            persos[i].setFacing(map);
+            persos[i].setFacing(map, dir);
         }
     }
 }
@@ -92,7 +92,7 @@ int Combat::getTeam() const
     return m_player;
 }
 
-void Combat::shiftAction(vector<Personnage>& persos, const MaptabP *map)
+int Combat::shiftAction(vector<Personnage>& persos, const MaptabP *map)
 {
     if (m_wait == 0)
     {
@@ -105,26 +105,45 @@ void Combat::shiftAction(vector<Personnage>& persos, const MaptabP *map)
             else if (persos[i].getTeam() == m_player && persos[i].getState() == 5)
             {
                 persos[i].setState(6);
-                persos[i].setFacing(map);
+                persos[i].setFacing(map, 2);
             }
             else if (persos[i].getTeam() == m_player && persos[i].getState() == 6)
             {
+                int attackRollFinal;
+                if (persos[i].getSpellDmg() == 0)
+                {
+                    attackRollFinal = 0;
+                }
+                else
+                {
+                    int attackRoll = std::rand() % 20;
+                    attackRollFinal = attackRoll + 1;
+                }
+                
                 for (unsigned k = 0; k < persos.size(); k++)
                 {
                     if (k != i)
                     {
-                        persos[i].attack(persos[k], map);
+                        persos[i].attack(persos[k], map, attackRollFinal);
                     }
                 }
                 persos[i].decreaseMana();
                 persos[i].activateInEffect();
                 persos[i].endTurn();
+
+                if (attackRollFinal == 0)
+                {
+                    return attackRollFinal;
+                }
+                return attackRollFinal + persos[i].getBonusAttack();
             }
 
         }
 
         setWait(10);
     }
+
+    return 0;
 }
 
 void Combat::switchTeams(vector<Personnage> &persos)

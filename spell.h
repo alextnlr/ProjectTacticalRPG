@@ -9,31 +9,39 @@
 
 using namespace std;
 
+typedef enum {Cac, Line, Self, Shock} spellType;
+typedef enum {NullIn, Heal, Focus} spellInEffect;
+typedef enum {NullOut} spellOutEffect;
+
 class Spell
 {
 public:
     Spell();
-    Spell(string nom, int dgt, int type, int cost);
-    Spell(string nom, int dgt, int type, int cost, int ineffect, int outeffect, int powerineffect, int powerouteffect);
+    Spell(string nom, string dgt, spellType type, int cost);
+    Spell(string nom, string dgt, spellType type, int cost, spellInEffect ineffect, int powerineffect);
+    Spell(string nom, string dgt, spellType type, int cost, spellOutEffect outeffect, int powerouteffect);
+    Spell(string nom, string dgt, spellType type, int cost, spellInEffect ineffect, int powerineffect, spellOutEffect outeffect, int powerouteffect);
     Spell(Spell const& copie);
     string getName() const;
     int getCycle() const;
-    int getDegats() const;
+    int getDegats();
     int getCost() const;
     int activateInEffect() const;
     int getPowerInEffect() const;
+    void decryptDmg(std::string diceString, int& nbDice, int& dmgDice, int& bonusDmg);
     vector<MaptabP> spellGrid(const MaptabP *map, int posCastx, int posCasty);
-    vector<MaptabP> spellGridType0(const MaptabP *map, int posCastx, int posCasty);
-    vector<MaptabP> spellGridType1(const MaptabP *map, int posCastx, int posCasty);
-    vector<MaptabP> spellGridType2(const MaptabP *map, int posCastx, int posCasty);
+    vector<MaptabP> spellGridTypeCac(const MaptabP *map, int posCastx, int posCasty);
+    vector<MaptabP> spellGridTypeLine(const MaptabP *map, int posCastx, int posCasty);
+    vector<MaptabP> spellGridTypeSelf(const MaptabP *map, int posCastx, int posCasty);
+    vector<MaptabP> spellGridTypeShock(const MaptabP* map, int posCastx, int posCasty);
 private:
     string m_nom_sort;
-    int m_dgt;
-    int m_type;
+    string m_dgt;
+    spellType m_type;
     int m_cost;
     int m_cycle;
-    int m_ineffect;
-    int m_outeffect;
+    spellInEffect m_ineffect;
+    spellOutEffect m_outeffect;
     int m_powerineffect;
     int m_powerouteffect;
 };

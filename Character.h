@@ -1,23 +1,28 @@
-#ifndef PERSONNAGE_H_INCLUDED
-#define PERSONNAGE_H_INCLUDED
+#ifndef Character_H_INCLUDED
+#define Character_H_INCLUDED
 
 #include "fonctions_SDL.h"
 #include "spell.h"
+#include "StatusList.h"
 
-class Personnage
+class Character
 {
 public:
-    Personnage(int pv, int ac, vector<Spell> spells, string nom, int team);
-    Personnage(int pv, int ac, vector<Spell> spells, string nom, int team, int x, int y);
-    Personnage(Personnage const& copie);
-    void takeDamage(int dmg, int attackRoll);
-    void attack(Personnage &cible, const MaptabP *map, int attackRoll);
-    int getBonusAttack() const;
+    Character(int pv, int ac, vector<Spell> spells, string nom, int team);
+    Character(int pv, int ac, vector<Spell> spells, string nom, int team, int x, int y);
+    Character(Character const& copie);
+    void takeDamage(int dmg, int attackRoll, spellOutEffect effect, int power);
+    void attack(Character &cible, const MaptabP *map, int attackRoll);
+    int getBonusAttack();
+    int getAc();
+    int getBonusDamage();
     void activateInEffect();
+    void activateOutEffect(spellOutEffect effect, int power);
     void decreaseMana();
     SDL_Rect afficherDegats(int texteW, int texteH);
     void deplacer(int x, int y);
     void walk(int direction, MaptabP *map);
+    void updateStatus();
     void heal(int qteHeal);
     SDL_Rect getCoord() const;
     bool estVivant() const;
@@ -55,6 +60,7 @@ private:
     string m_name;
     int m_pos[2];
     vector<Spell> m_spells;
+    StatusList m_status;
     int m_hurt;
     int m_dgtAnim;
     int m_frameIdle;
@@ -68,4 +74,4 @@ private:
     int m_bonusDmg;
 };
 
-#endif // PERSONNAGE_H_INCLUDED
+#endif // Character_H_INCLUDED

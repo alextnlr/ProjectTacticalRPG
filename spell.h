@@ -10,8 +10,8 @@
 using namespace std;
 
 typedef enum {Cac, Line, Self, Shock} spellType;
-typedef enum {NullIn, Heal, Focus} spellInEffect;
-typedef enum {NullOut} spellOutEffect;
+typedef enum {NullIn, Heal, Focus, ShieldUp} spellInEffect;
+typedef enum {NullOut, ShieldDown} spellOutEffect;
 
 class Spell
 {
@@ -26,8 +26,10 @@ public:
     int getCycle() const;
     int getDegats();
     int getCost() const;
-    int activateInEffect() const;
+    spellInEffect activateInEffect() const;
+    spellOutEffect activateOutEffect() const;
     int getPowerInEffect() const;
+    int getPowerOutEffect() const;
     void decryptDmg(std::string diceString, int& nbDice, int& dmgDice, int& bonusDmg);
     vector<MaptabP> spellGrid(const MaptabP *map, int posCastx, int posCasty);
     vector<MaptabP> spellGridTypeCac(const MaptabP *map, int posCastx, int posCasty);

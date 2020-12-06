@@ -146,14 +146,24 @@ int Spell::getCost() const
     return m_cost;
 }
 
-int Spell::activateInEffect() const
+spellInEffect Spell::activateInEffect() const
 {
     return m_ineffect;
+}
+
+spellOutEffect Spell::activateOutEffect() const
+{
+    return m_outeffect;
 }
 
 int Spell::getPowerInEffect() const
 {
     return m_powerineffect;
+}
+
+int Spell::getPowerOutEffect() const
+{
+    return m_powerouteffect;
 }
 
 void Spell::decryptDmg(std::string diceString, int &nbDice, int &dmgDice, int &bonusDmg)
@@ -218,19 +228,19 @@ vector<MaptabP> Spell::spellGridTypeCac(const MaptabP *map, int posCastx, int po
         spellGrid0.push_back(allocateInt(map->lig, map->col));
     }
 
-    if (posCasty - 1 >= 0 && map->mapInt[posCastx][posCasty - 1] == 0)
+    if (posCasty - 1 >= 0 && map->mapInt[posCastx][posCasty - 1] < 5)
     {
         spellGrid0[0].mapInt[posCastx][posCasty - 1] = 1;
     }
-    if (posCastx + 1 < map->col && map->mapInt[posCastx + 1][posCasty] == 0)
+    if (posCastx + 1 < map->col && map->mapInt[posCastx + 1][posCasty] < 5)
     {
         spellGrid0[2].mapInt[posCastx + 1][posCasty] = 1;
     }
-    if (posCasty + 1 < map->lig && map->mapInt[posCastx][posCasty + 1] == 0)
+    if (posCasty + 1 < map->lig && map->mapInt[posCastx][posCasty + 1] < 5)
     {
         spellGrid0[1].mapInt[posCastx][posCasty + 1] = 1;
     }
-    if (posCastx - 1 >= 0 && map->mapInt[posCastx - 1][posCasty] == 0)
+    if (posCastx - 1 >= 0 && map->mapInt[posCastx - 1][posCasty] < 5)
     {
         spellGrid0[3].mapInt[posCastx - 1][posCasty] = 1;
     }
@@ -247,25 +257,25 @@ vector<MaptabP> Spell::spellGridTypeLine(const MaptabP *map, int posCastx, int p
     }
 
     int k = 1;
-    while (posCasty - k >= 0 && map->mapInt[posCastx][posCasty - k] == 0)
+    while (posCasty - k >= 0 && map->mapInt[posCastx][posCasty - k] < 5)
     {
         spellGrid1[0].mapInt[posCastx][posCasty - k] = 1;
         k++;
     }
     k = 1;
-    while (posCastx + k < map->col && map->mapInt[posCastx + k][posCasty] == 0)
+    while (posCastx + k < map->col && map->mapInt[posCastx + k][posCasty] < 5)
     {
         spellGrid1[2].mapInt[posCastx + k][posCasty] = 1;
         k++;
     }
     k = 1;
-    while (posCasty + k < map->lig && map->mapInt[posCastx][posCasty + k] == 0)
+    while (posCasty + k < map->lig && map->mapInt[posCastx][posCasty + k] < 5)
     {
         spellGrid1[1].mapInt[posCastx][posCasty + k] = 1;
         k++;
     }
     k = 1;
-    while (posCastx - k >= 0 && map->mapInt[posCastx - k][posCasty] == 0)
+    while (posCastx - k >= 0 && map->mapInt[posCastx - k][posCasty] < 5)
     {
         
         spellGrid1[3].mapInt[posCastx - k][posCasty] = 1;
@@ -297,7 +307,7 @@ vector<MaptabP> Spell::spellGridTypeShock(const MaptabP* map, int posCastx, int 
             {
                 if (posCasty + y >= 0 && posCasty + y < map->lig)
                 {
-                    if (map->mapInt[posCastx+x][posCasty+y] == 0)
+                    if (map->mapInt[posCastx+x][posCasty+y] < 5)
                     {
                         spellGrid.at(0).mapInt[posCastx + x][posCasty + y] = 1;
                     }

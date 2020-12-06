@@ -1,9 +1,9 @@
 #include <iostream>
-#include "affichage.h"
+#include "Display.h"
 
 using namespace std;
 
-Affichage::Affichage()
+Display::Display()
 {
     if(SDL_Init(SDL_INIT_VIDEO) < 0) {
         cout << "Erreur init SDL: " << SDL_GetError() << endl;
@@ -26,7 +26,7 @@ Affichage::Affichage()
 
     m_renderer = SDL_CreateRenderer(m_window, -1, SDL_RENDERER_ACCELERATED);
 
-    m_background = charger_image("pavage.bmp",m_renderer);
+    m_background = charger_image("Tiles.bmp",m_renderer);
     if(m_background == NULL) {
         cout << "Erreur chargement fond: " << SDL_GetError() << endl;
     }
@@ -40,6 +40,9 @@ Affichage::Affichage()
     }
     m_infoCard = charger_image_transparente("InfoCard.bmp", m_renderer, r, g, b);
     m_menu = charger_image_transparente("Menu.bmp", m_renderer, r, g, b);
+    m_selectCase = charger_image_transparente("SelectCadre.bmp", m_renderer, r, g, b);
+    m_spellSelect = charger_image_transparente("SpellSelect.bmp", m_renderer, r, g, b);
+    m_spellNoSelect = charger_image_transparente("SpellNoSelect.bmp", m_renderer, r, g, b);
     m_d20 = charger_image_transparente("d20.bmp", m_renderer, r, g, b);
     if (m_infoCard == NULL || m_menu == NULL) {
         cout << "Erreur chargement texture info Card: " << SDL_GetError() << endl;
@@ -70,7 +73,7 @@ Affichage::Affichage()
     m_physicalFrame = true;
     m_frameNum = 0;
 
-    setRectTerrain(16,10);
+    setRectTerrain(4,2);
     SDL_SetRenderDrawBlendMode(m_renderer, SDL_BLENDMODE_BLEND);
 
     m_currentTeam = 0;
@@ -78,7 +81,7 @@ Affichage::Affichage()
     m_stockRoll = 0;
 }
 
-void Affichage::setRectTerrain(int nbColonnes, int nbLignes)
+void Display::setRectTerrain(int nbColonnes, int nbLignes)
 {
     int blocW, blocH;
     SDL_QueryTexture(m_background, NULL, NULL, &blocW, &blocH);
@@ -93,18 +96,18 @@ void Affichage::setRectTerrain(int nbColonnes, int nbLignes)
     }
 }
 
-void Affichage::clearRenderer() const
+void Display::clearRenderer() const
 {
     SDL_RenderClear(m_renderer);
 }
 
-void Affichage::displayRenderer() const
+void Display::displayRenderer() const
 {
     SDL_RenderPresent(m_renderer);
     SDL_Delay(1000. / 60.);
 }
 
-void Affichage::setFrame()
+void Display::setFrame()
 {
     if(SDL_GetTicks() / m_TICK_INTERVALLE > m_frameNum) {
         m_frameNum = SDL_GetTicks() / m_TICK_INTERVALLE;
@@ -114,7 +117,7 @@ void Affichage::setFrame()
     }
 }
 
-void Affichage::displayTerrain(const MaptabP *map)
+void Display::displayTerrain(const MaptabP *map)
 {
     for(int i = 0 ; i < map->col ; i++) {
         m_rectPos.x = i*64;
@@ -125,7 +128,7 @@ void Affichage::displayTerrain(const MaptabP *map)
     }
 }
 
-void Affichage::displayCharacters(vector<Personnage> &persos)
+void Display::displayCharacters(vector<Character> &persos)
 {
     for(int i = 0 ; i < persos.size() ; i++)
     {
@@ -133,6 +136,12 @@ void Affichage::displayCharacters(vector<Personnage> &persos)
         {
             SDL_Rect rectPos = persos[i].getCoord();
             SDL_Rect rectFrame = persos[i].afficherPersoBarre(m_physicalFrame);
+
+            if (persos[i].getState() >= 0)
+            {
+                SDL_RenderCopy(m_renderer, m_selectCase, NULL, &rectPos);
+            }
+
             if (persos[i].getEnd())
             {
                 SDL_RenderCopy(m_renderer, m_endMageTexture, &rectFrame, &rectPos);
@@ -145,12 +154,7 @@ void Affichage::displayCharacters(vector<Personnage> &persos)
             {
                 SDL_RenderCopy(m_renderer, m_redMageTexture, &rectFrame, &rectPos);
             }
-            if (persos[i].getState() >= 0)
-            {
-                SDL_SetRenderDrawColor(m_renderer, 255, 255, 255, 255);
-                SDL_RenderDrawRect(m_renderer, &rectPos);
-                SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);
-            }
+            
             persos[i].decreaseWait();
             if (persos[i].getWait() == 0 && persos[i].getState() >= 0 && m_physicalFrame && persos[i].getState() < 5)
             {
@@ -160,10 +164,10 @@ void Affichage::displayCharacters(vector<Personnage> &persos)
     }
 }
 
-bool Affichage::displayDamages(vector<Personnage>& persos, int roll)
+bool Display::displayDamages(vector<Character>& persos, int roll)
 {
     bool found = false;
-    for (Personnage & perso : persos)
+    for (Character & perso : persos)
     {
         if (perso.getHurt() && !roll) {
             SDL_Color color = { 0,0,0,255 };
@@ -183,7 +187,7 @@ bool Affichage::displayDamages(vector<Personnage>& persos, int roll)
     return false;
 }
 
-bool Affichage::displayRoll(int &roll)
+bool Display::displayRoll(int &roll)
 {
     if (roll)
     {
@@ -208,7 +212,7 @@ bool Affichage::displayRoll(int &roll)
 
         SDL_Color color;
         color = { 255, 255, 255, 255 };
-        if (m_timerShowRoll > 30)
+        if (m_timerShowRoll > 40)
         {
             int attackRoll = std::rand() % 20;
             if (m_timerShowRoll%4 == 0)
@@ -243,7 +247,7 @@ bool Affichage::displayRoll(int &roll)
     return (m_timerShowRoll > 0);
 }
 
-void Affichage::displayMenu(vector<Personnage> &persos)
+void Display::displayMenu(vector<Character> &persos)
 {
     for (unsigned i = 0; i < persos.size(); i++)
     {
@@ -307,7 +311,7 @@ void Affichage::displayMenu(vector<Personnage> &persos)
     
 }
 
-void Affichage::displaySpellRange(vector<Personnage> &persos, const MaptabP *map)
+void Display::displaySpellRange(vector<Character> &persos, const MaptabP *map)
 {
     for (unsigned i = 0; i < persos.size(); i++)
     {
@@ -329,13 +333,39 @@ void Affichage::displaySpellRange(vector<Personnage> &persos, const MaptabP *map
                             rectSpellGrid.h = 64;
                             if (persos[i].getFacing() == k)
                             {
-                                SDL_SetRenderDrawColor(m_renderer, 255, 0, 0, 255);
+                                SDL_SetRenderDrawColor(m_renderer, 255, 0, 0, 70);
+                                SDL_RenderFillRect(m_renderer, &rectSpellGrid);
+                                SDL_RenderCopy(m_renderer, m_spellSelect, NULL, &rectSpellGrid);
                             }
-                            else {
-                                SDL_SetRenderDrawColor(m_renderer, 238, 130, 238, 255);
+                            else 
+                            {
+                                SDL_SetRenderDrawColor(m_renderer, 255, 215, 0, 50);
+                                SDL_RenderFillRect(m_renderer, &rectSpellGrid);
+                                SDL_RenderCopy(m_renderer, m_spellNoSelect, NULL, &rectSpellGrid);
                             }
-                            SDL_RenderDrawRect(m_renderer, &rectSpellGrid);
+                            
                             SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);
+
+                            for (unsigned j = 0; j < persos.size(); j++)
+                            {
+                                if (i != j)
+                                {
+                                    if (persos[j].estVivant() && persos[j].getCoord().x == rectSpellGrid.x && persos[j].getCoord().y == rectSpellGrid.y)
+                                    {
+                                        double proba = (double)persos[j].getAc() - persos[i].getBonusAttack();
+                                        proba = (21-proba)/20*100;
+                                        string probaStr = to_string((int)proba);
+                                        probaStr += "%";
+                                        SDL_Color color = {0, 0, 0, 255};
+                                        SDL_Texture* probaText = charger_texte(probaStr.c_str(), m_renderer, m_font8, color);
+                                        int textW, textH;
+                                        SDL_QueryTexture(probaText, NULL, NULL, &textW, &textH);
+                                        SDL_Rect posText{ persos[j].getCoord().x+32-textW/2, persos[j].getCoord().y-textH+15, textW, textH };
+                                        SDL_RenderCopy(m_renderer, probaText, NULL, &posText);
+                                        SDL_DestroyTexture(probaText);
+                                    }
+                                }
+                            }
                         }
                         
                     }
@@ -351,7 +381,7 @@ void Affichage::displaySpellRange(vector<Personnage> &persos, const MaptabP *map
     }
 }
 
-bool Affichage::displayTeam(int team, int roll)
+bool Display::displayTeam(int team, int roll)
 {
     if (team != m_currentTeam && !roll)
     {
@@ -397,7 +427,7 @@ bool Affichage::displayTeam(int team, int roll)
     return (m_timerShowTeam > 0);
 }
 
-void Affichage::displayInfoCard(vector<Personnage> &persos, int xmouse, int ymouse)
+void Display::displayInfoCard(vector<Character> &persos, int xmouse, int ymouse)
 {
 
     for(int i = 0 ; i < persos.size() ; i++)
@@ -415,7 +445,7 @@ void Affichage::displayInfoCard(vector<Personnage> &persos, int xmouse, int ymou
 
 }
 
-void Affichage::createInfoCard(Personnage &perso, int pos) {
+void Display::createInfoCard(Character &perso, int pos) {
     if (perso.estVivant())
     {
         SDL_SetRenderDrawColor(m_renderer, 160, 82, 45, 255);
@@ -432,23 +462,36 @@ void Affichage::createInfoCard(Personnage &perso, int pos) {
 
         SDL_Color color = { 255, 255, 255, 255 };
 
-        SDL_Texture* nom = charger_texte(perso.getName().c_str(), m_renderer, m_font16, color);
+        SDL_Texture* nom = charger_texte(perso.getName().c_str(), m_renderer, m_font8, color);
         SDL_QueryTexture(nom, NULL, NULL, &texteW, &texteH);
 
         SDL_Rect nom_pos;
-        nom_pos.x = rectCard.x + (rectCard.w - texteW) / 2;
+        nom_pos.x = rectCard.x + 35;
         nom_pos.y = 25;
         nom_pos.w = texteW;
         nom_pos.h = texteH;
 
         SDL_RenderCopy(m_renderer, nom, NULL, &nom_pos);
 
+        string ac = "ac ";
+        ac += to_string(perso.getAc());
+        SDL_Texture* acText = charger_texte(ac.c_str(), m_renderer, m_font8, color);
+        SDL_QueryTexture(acText, NULL, NULL, &texteW, &texteH);
+
+        SDL_Rect textePos;
+        textePos.x = rectCard.x + rectCard.w - texteW - 40;
+        textePos.y = 25;
+        textePos.w = texteW;
+        textePos.h = texteH;
+
+        SDL_RenderCopy(m_renderer, acText, NULL, &textePos);
+
         char hp[10];
         sprintf_s(hp, "%i/%i", perso.getHp(), perso.getMaxHp());
         SDL_Texture* hpStr = charger_texte(hp, m_renderer, m_font8, color);
         SDL_QueryTexture(hpStr, NULL, NULL, &texteW, &texteH);
 
-        SDL_Rect textePos;
+        
         textePos.x = rectCard.x + 20;
         textePos.y = 55;
         textePos.w = texteW;
@@ -499,7 +542,7 @@ void Affichage::createInfoCard(Personnage &perso, int pos) {
     }
 }
 
-void Affichage::desallouer()
+void Display::desallouer()
 {
     TTF_CloseFont(m_font64);
     TTF_CloseFont(m_font16);
@@ -510,6 +553,9 @@ void Affichage::desallouer()
     SDL_DestroyTexture(m_bar);
     SDL_DestroyTexture(m_underBar);
     SDL_DestroyTexture(m_infoCard);
+    SDL_DestroyTexture(m_selectCase);
+    SDL_DestroyTexture(m_spellSelect);
+    SDL_DestroyTexture(m_spellNoSelect);
     SDL_DestroyTexture(m_d20);
     SDL_DestroyTexture(m_menu);
     SDL_DestroyTexture(m_mana);

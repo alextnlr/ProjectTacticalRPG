@@ -1,14 +1,14 @@
-#include "combat.h"
+#include "Fight.h"
 
 using namespace std;
 
-Combat::Combat()
+Fight::Fight()
 {
     m_wait = 0;
     m_player = 0;
 }
 
-void Combat::move(vector<Personnage> &persos, int dir, const MaptabP *map)
+void Fight::move(vector<Character> &persos, int dir, const MaptabP *map)
 {
     for (unsigned i = 0; i < persos.size(); i++)
     {
@@ -37,16 +37,18 @@ void Combat::move(vector<Personnage> &persos, int dir, const MaptabP *map)
     }
 }
 
-MaptabP Combat::createColli(vector<Personnage> &persos, const MaptabP *map, int num)
+MaptabP Fight::createColli(vector<Character> &persos, const MaptabP *map, int num)
 {
     MaptabP colli = allocateInt(map->lig, map->col);
+    
     for (unsigned x = 0; x < map->col; x++)
     {
         for (unsigned y = 0; y < map->lig; y++)
         {
-            if (map->mapInt[x][y] != 0)
+            colli.mapInt[x][y] = map->mapInt[x][y];
+            if (colli.mapInt[x][y] > 5)
             {
-                colli.mapInt[x][y] = 1;
+                colli.mapInt[x][y] = -1;
             }
             else
             {
@@ -56,7 +58,7 @@ MaptabP Combat::createColli(vector<Personnage> &persos, const MaptabP *map, int 
                     {
                         if (persos[i].estVivant() && persos[i].getCoord().x / 64 == x && persos[i].getCoord().y / 64 == y)
                         {
-                            colli.mapInt[x][y] = 1;
+                            colli.mapInt[x][y] = -1;
                         }
                     }
                 }
@@ -67,7 +69,7 @@ MaptabP Combat::createColli(vector<Personnage> &persos, const MaptabP *map, int 
     return colli;
 }
 
-void Combat::select(vector<Personnage> &persos, int xmouse, int ymouse)
+void Fight::select(vector<Character> &persos, int xmouse, int ymouse)
 {
     for (unsigned i = 0; i < persos.size(); i++)
     {
@@ -79,7 +81,7 @@ void Combat::select(vector<Personnage> &persos, int xmouse, int ymouse)
     }
 }
 
-void Combat::deselect(vector<Personnage>& persos)
+void Fight::deselect(vector<Character>& persos)
 {
     for (unsigned i = 0; i < persos.size(); i++)
     {
@@ -87,12 +89,39 @@ void Combat::deselect(vector<Personnage>& persos)
     }
 }
 
-int Combat::getTeam() const
+int Fight::getTeam() const
 {
     return m_player;
 }
 
-int Combat::shiftAction(vector<Personnage>& persos, const MaptabP *map)
+bool Fight::cancel(vector<Character>& persos)
+{
+    if (!m_wait)
+    {
+        bool found = false;
+        for (Character& perso : persos)
+        {
+            if (perso.getState() >= 0)
+            {
+                if (perso.getState() < 5)
+                {
+                    perso.setState(-1);
+                }
+                else
+                {
+                    perso.setState(perso.getState() - 1);
+                }
+
+                setWait(20);
+                found = true;
+            }
+        }
+        return found;
+    }
+    return true;
+}
+
+int Fight::shiftAction(vector<Character>& persos, const MaptabP *map)
 {
     if (m_wait == 0)
     {
@@ -146,35 +175,36 @@ int Combat::shiftAction(vector<Personnage>& persos, const MaptabP *map)
     return 0;
 }
 
-void Combat::switchTeams(vector<Personnage> &persos)
+void Fight::switchTeams(vector<Character> &persos)
 {
     if (m_wait == 0)
     {
         m_player = (m_player + 1) % 2;
         deselect(persos);
-        for (Personnage & perso : persos)
+        for (Character & perso : persos)
         {
             perso.newTurn();
+            perso.updateStatus();
         }
         setWait(20);
     }
 }
 
-void Combat::autoNewTurn(vector<Personnage> &persos)
+void Fight::autoNewTurn(vector<Character> &persos)
 {
     int nbInTeam = 0;
-    for (Personnage & perso : persos)
+    for (Character & perso : persos)
     {
-        if (perso.getTeam() == m_player)
+        if (perso.estVivant() && perso.getTeam() == m_player)
         {
             nbInTeam++;
         }
     }
 
     int nbEndTurn = 0;
-    for (Personnage & perso : persos)
+    for (Character & perso : persos)
     {
-        if (perso.getEnd() && perso.getTeam() == m_player)
+        if (perso.estVivant() && perso.getEnd() && perso.getTeam() == m_player)
         {
             nbEndTurn++;
         }
@@ -186,7 +216,7 @@ void Combat::autoNewTurn(vector<Personnage> &persos)
     }
 }
 
-void Combat::decreaseWait()
+void Fight::decreaseWait()
 {
     if (m_wait > 0)
     {
@@ -194,7 +224,7 @@ void Combat::decreaseWait()
     }
 }
 
-void Combat::setWait(int wait)
+void Fight::setWait(int wait)
 {
     m_wait = wait;
 }

@@ -1,27 +1,27 @@
-#ifndef AFFICHAGE_H_INCLUDED
-#define AFFICHAGE_H_INCLUDED
+#ifndef Display_H_INCLUDED
+#define Display_H_INCLUDED
 
-#include "personnage.h"
+#include "Character.h"
 
 using namespace std;
 
-class Affichage
+class Display
 {
 public:
-    Affichage();
+    Display();
     void setRectTerrain(int nbColonnes, int nbLignes);
     void clearRenderer() const;
     void displayRenderer() const;
     void setFrame();
     void displayTerrain(const MaptabP *map);
-    void displayCharacters(vector<Personnage> &persos);
-    bool displayDamages(vector<Personnage>& persos, int roll);
+    void displayCharacters(vector<Character> &persos);
+    bool displayDamages(vector<Character>& persos, int roll);
     bool displayRoll(int& roll);
-    void displayMenu(vector<Personnage> &persos);
-    void displaySpellRange(vector<Personnage> &persos, const MaptabP *map);
+    void displayMenu(vector<Character> &persos);
+    void displaySpellRange(vector<Character> &persos, const MaptabP *map);
     bool displayTeam(int team, int roll);
-    void displayInfoCard(vector<Personnage> &persos, int xmouse, int ymouse);
-    void createInfoCard(Personnage &perso, int pos);
+    void displayInfoCard(vector<Character> &persos, int xmouse, int ymouse);
+    void createInfoCard(Character &perso, int pos);
     void desallouer();
 private:
     int m_widthWindow;
@@ -40,6 +40,9 @@ private:
     SDL_Texture* m_bar;
     SDL_Texture* m_mana;
     SDL_Texture* m_blackMana;
+    SDL_Texture* m_selectCase;
+    SDL_Texture* m_spellSelect;
+    SDL_Texture* m_spellNoSelect;
     SDL_Texture* m_d20;
     SDL_Texture* m_blueMageTexture;
     SDL_Texture* m_redMageTexture;
@@ -55,4 +58,4 @@ private:
     int m_stockRoll;
 };
 
-#endif // AFFICHAGE_H_INCLUDED
+#endif // Display_H_INCLUDED

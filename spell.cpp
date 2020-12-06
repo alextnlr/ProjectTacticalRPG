@@ -211,6 +211,9 @@ vector<MaptabP> Spell::spellGrid(const MaptabP *map, int posCastx, int posCasty)
     case Shock:
         spellGrid = spellGridTypeShock(map, posCastx, posCasty);
         break;
+    case Cone:
+        spellGrid = spellGridTypeCone(map, posCastx, posCasty);
+        break;
     default:
         spellGrid.push_back(allocateInt(map->lig, map->col));
         break;
@@ -285,7 +288,7 @@ vector<MaptabP> Spell::spellGridTypeLine(const MaptabP *map, int posCastx, int p
     return spellGrid1;
 }
 
-vector<MaptabP> Spell::spellGridTypeSelf(const MaptabP *map, int posCastx, int posCasty)
+vector<MaptabP> Spell::spellGridTypeSelf(const MaptabP* map, int posCastx, int posCasty)
 {
     vector<MaptabP> spellGrid2;
     spellGrid2.clear();
@@ -297,7 +300,6 @@ vector<MaptabP> Spell::spellGridTypeSelf(const MaptabP *map, int posCastx, int p
 vector<MaptabP> Spell::spellGridTypeShock(const MaptabP* map, int posCastx, int posCasty)
 {
     vector<MaptabP> spellGrid;
-    spellGrid.clear();
     spellGrid.push_back(allocateInt(map->lig, map->col));
     for (int x = -1; x <= 1; x++)
     {
@@ -318,3 +320,158 @@ vector<MaptabP> Spell::spellGridTypeShock(const MaptabP* map, int posCastx, int 
     return spellGrid;
 }
 
+vector<MaptabP> Spell::spellGridTypeCone(const MaptabP* map, int posCastx, int posCasty)
+{
+    vector<MaptabP> spellGrid;
+    for (unsigned i = 0; i < 4; i++)
+    {
+        spellGrid.push_back(allocateInt(map->lig, map->col));
+    }
+
+    int k = 1;
+    int limPos = 4, limNeg = -4;
+    bool end = false;
+    while (k <= 3)
+    {
+        if (posCasty + k >= map->lig  || map->mapInt[posCastx][posCasty + k] >= 5)
+        {
+            end = true;
+        }
+        if (posCasty + k < map->lig && !end)
+        {
+            for (int i = -k + 1; i < k; i++)
+            {
+                if ((i <= 0 && i > limNeg) || (i > 0 && i < limPos))
+                {
+                    if (posCastx + i >= 0 && posCastx + i < map->col && map->mapInt[posCastx + i][posCasty + k] < 5)
+                    {
+                        spellGrid[1].mapInt[posCastx + i][posCasty + k] = 1;
+                    }
+                    else
+                    {
+                        if (i <= 0)
+                        {
+                            limNeg = i;
+                        }
+                        else
+                        {
+                            limPos = i;
+                        }
+                    }
+                }
+                
+            }
+        }
+        k++;
+    }
+
+    k = 1;
+    limPos = 4; limNeg = -4;
+    end = false;
+    while (k <= 3)
+    {
+        if (posCasty + k < 0 || map->mapInt[posCastx][posCasty - k] >= 5)
+        {
+            break;
+        }
+        if (posCasty - k >= 0 && !end)
+        {
+            for (int i = -k + 1; i < k; i++)
+            {
+                if ((i <= 0 && i > limNeg) || (i > 0 && i < limPos))
+                {
+                    if (posCastx + i >= 0 && posCastx + i < map->col && map->mapInt[posCastx + i][posCasty - k] < 5)
+                    {
+                        spellGrid[0].mapInt[posCastx + i][posCasty - k] = 1;
+                    }
+                    else
+                    {
+                        if (i <= 0)
+                        {
+                            limNeg = i;
+                        }
+                        else
+                        {
+                            limPos = i;
+                        }
+                    }
+                }
+            }
+        }
+        k++;
+    }
+
+    k = 1;
+    limPos = 4; limNeg = -4;
+    end = false;
+    while (k <= 3)
+    {
+        if (posCastx + k >= map->col || map->mapInt[posCastx + k][posCasty] >= 5)
+        {
+            end = true;
+        }
+        if (posCastx + k < map->col && !end)
+        {
+            for (int i = -k + 1; i < k; i++)
+            {
+                if ((i <= 0 && i > limNeg) || (i > 0 && i < limPos))
+                {
+                    if (posCasty + i >= 0 && posCasty + i < map->lig && map->mapInt[posCastx + k][posCasty + i] < 5)
+                    {
+                        spellGrid[2].mapInt[posCastx + k][posCasty + i] = 1;
+                    }
+                    else
+                    {
+                        if (i <= 0)
+                        {
+                            limNeg = i;
+                        }
+                        else
+                        {
+                            limPos = i;
+                        }
+                    }
+                }
+            }
+        }
+        k++;
+    }
+
+    k = 1;
+    limPos = 4; limNeg = -4;
+    end = false;
+    while (k <= 3)
+    {
+        if (posCastx - k < 0 || map->mapInt[posCastx - k][posCasty] >= 5)
+        {
+            end = true;
+        }
+        if (posCastx - k >= 0 && !end)
+        {
+            for (int i = -k + 1; i < k; i++)
+            {
+                if ((i <= 0 && i > limNeg) || (i > 0 && i < limPos))
+                {
+                    if (posCasty + i >= 0 && posCasty + i < map->lig && map->mapInt[posCastx - k][posCasty + i] < 5)
+                    {
+                        spellGrid[3].mapInt[posCastx - k][posCasty + i] = 1;
+                    }
+                    else
+                    {
+                        if (i <= 0)
+                        {
+                            limNeg = i;
+                        }
+                        else
+                        {
+                            limPos = i;
+                        }
+                    }
+                }
+            }
+        }
+        k++;
+    }
+
+    return spellGrid;
+}

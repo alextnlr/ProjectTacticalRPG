@@ -9,9 +9,9 @@
 
 using namespace std;
 
-typedef enum {Cac, Line, Self, Shock} spellType;
-typedef enum {NullIn, Heal, Focus, ShieldUp} spellInEffect;
-typedef enum {NullOut, ShieldDown} spellOutEffect;
+typedef enum {Cac, Line, Self, Shock, Cone} spellType;
+typedef enum {NullIn, Heal, Focus, ShieldUp, AttackUp, PrecisionUp, Clean} spellInEffect;
+typedef enum {NullOut, ShieldDown, AttackDown, PrecisionDown, HealOther, CleanOther} spellOutEffect;
 
 class Spell
 {
@@ -36,6 +36,7 @@ public:
     vector<MaptabP> spellGridTypeLine(const MaptabP *map, int posCastx, int posCasty);
     vector<MaptabP> spellGridTypeSelf(const MaptabP *map, int posCastx, int posCasty);
     vector<MaptabP> spellGridTypeShock(const MaptabP* map, int posCastx, int posCasty);
+    vector<MaptabP> spellGridTypeCone(const MaptabP* map, int posCastx, int posCasty);
 private:
     string m_nom_sort;
     string m_dgt;

@@ -135,6 +135,16 @@ int Character::getBonusDamage()
     return m_bonusDmg + m_status.getArcana();
 }
 
+TerrainEffect Character::getTerrain()
+{
+    return m_status.getTerrain();
+}
+
+bool* Character::getStatus()
+{
+    return m_status.getStatusActive();
+}
+
 void Character::activateInEffect()
 {
     switch (m_spells[m_selectedSpell].activateInEffect())
@@ -148,6 +158,15 @@ void Character::activateInEffect()
     case ShieldUp:
         m_status.setShieldUp(4, m_spells[m_selectedSpell].getPowerInEffect());
         break;
+    case AttackUp:
+        m_status.setAttackUp(5, m_spells[m_selectedSpell].getPowerInEffect());
+        break;
+    case PrecisionUp:
+        m_status.setPrecisionUp(4, m_spells[m_selectedSpell].getPowerInEffect());
+        break;
+    case Clean:
+        m_status.resetAll();
+        break;
     default:
         break;
     }
@@ -159,6 +178,18 @@ void Character::activateOutEffect(spellOutEffect effect, int power)
     {
     case ShieldDown:
         m_status.setShieldDown(4, power);
+        break;
+    case AttackDown:
+        m_status.setAttackDown(5, power);
+        break;
+    case PrecisionDown:
+        m_status.setPrecisionDown(4, power);
+        break;
+    case HealOther:
+        heal(power);
+        break;
+    case CleanOther:
+        m_status.resetAll();
         break;
     default:
         break;

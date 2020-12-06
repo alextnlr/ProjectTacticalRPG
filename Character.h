@@ -16,6 +16,8 @@ public:
     int getBonusAttack();
     int getAc();
     int getBonusDamage();
+    TerrainEffect getTerrain();
+    bool* getStatus();
     void activateInEffect();
     void activateOutEffect(spellOutEffect effect, int power);
     void decreaseMana();

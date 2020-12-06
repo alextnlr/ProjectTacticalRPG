@@ -35,6 +35,7 @@ private:
     TTF_Font* m_font16;
     TTF_Font* m_font8;
     SDL_Texture* m_infoCard;
+    SDL_Texture* m_statusMarker;
     SDL_Texture* m_menu;
     SDL_Texture* m_underBar;
     SDL_Texture* m_bar;

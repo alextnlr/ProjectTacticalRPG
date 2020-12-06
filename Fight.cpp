@@ -1,11 +1,72 @@
 #include "Fight.h"
-
+#include <iostream>
 using namespace std;
 
 Fight::Fight()
 {
     m_wait = 0;
     m_player = 0;
+}
+
+vector<Character> Fight::createCharacter(const MaptabP &map)
+{
+    vector<Spell> spellList;
+    spellList.push_back(Spell("Artemis", "2d6+2", Line, 1, PrecisionUp, 3));
+    spellList.push_back(Spell("Ares", "3d10+0", Cac, 2, AttackUp, 3, ShieldDown, 2));
+    spellList.push_back(Spell("Poseidon", "1d8+4", Cone, 2, ShieldDown, 4));
+    spellList.push_back(Spell("Zeus", "2d6+3", Line, 2, AttackDown, 4));
+    spellList.push_back(Spell("Ades", "1d6+3", Shock, 2, Heal, 15, AttackDown, 2));
+    spellList.push_back(Spell("Nox", "1d6+0", Shock, 1, PrecisionDown, 4));
+    spellList.push_back(Spell("Aphrodite", "0d0+0", Self, 2, Heal, 25));
+    spellList.push_back(Spell("Athena", "2d6+3", Cac, 2, ShieldUp, 2));
+    spellList.push_back(Spell("Hephaistos", "2d4+5", Cone, 1, ShieldDown, 2));
+    spellList.push_back(Spell("Hermes", "1d4+5", Line, 1, PrecisionUp, 3));
+    spellList.push_back(Spell("Dionysos", "0d0+0", Self, 1, AttackUp, 5));
+    spellList.push_back(Spell("Demeter", "0d0+0", Self, 1, Clean, 0));
+    spellList.push_back(Spell("Hestia", "0d0+0", Cac, 1, HealOther, 15));
+    spellList.push_back(Spell("Hera", "0d0+0", Cac, 2, CleanOther, 0));
+
+    vector<string> name = {"Achille", "Belleph", "Heracles", "Jason", "OEdipe", "Persee", "Thesee", "Ulysse", "Ajax", "Amphi",
+                            "Antigone", "Ariane", "Danaos", "Dedale", "Hector", "Leda", "Minos", "Nestor"};
+
+    vector<Character> charac;
+    vector<Spell> spellListTemp;
+    
+    vector<int> aled = {-1 , -1, -1};
+
+    for (unsigned i = 0; i < 8; i++)
+    {
+        MaptabP mapcolli = createColli(charac, &map, i);
+        aled = {-1, -1, -1};
+        for (unsigned j = 0; j < 3; j++)
+        {
+            int spellRand = rand() % spellList.size();
+            auto truc = find(begin(aled), end(aled), spellRand);
+            while (truc != end(aled))
+            {
+                spellRand = rand() % spellList.size();
+                truc = find(begin(aled), end(aled), spellRand);
+            }
+            aled[j] = spellRand;
+            spellListTemp.push_back(spellList[spellRand]);
+        }
+
+        int x = (map.col * (i % 2)) - rand() % 3;
+        int y = rand() % map.lig;
+
+        while (mapcolli.mapInt[abs(x)][y] < 0)
+        {
+            x = (map.col * (i % 2)) - rand() % 3;
+            y = rand() % map.lig;
+        }
+        
+        charac.push_back(Character(rand() % 8 + 25, rand() % 4 + 11, spellListTemp, name[rand() % name.size()], i % 2, abs(x), y));
+
+        spellListTemp.clear();
+        deallocate(&mapcolli);
+    }
+
+    return charac;
 }
 
 void Fight::move(vector<Character> &persos, int dir, const MaptabP *map)

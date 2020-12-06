@@ -38,6 +38,8 @@ Display::Display()
     if(m_redMageTexture == NULL || m_blueMageTexture == NULL || m_endMageTexture == NULL) {
         cout << "Erreur chargement texture de mage: " << SDL_GetError() << endl;
     }
+
+    m_statusMarker = charger_image_transparente("StatusMarker.bmp", m_renderer, r, g, b);
     m_infoCard = charger_image_transparente("InfoCard.bmp", m_renderer, r, g, b);
     m_menu = charger_image_transparente("Menu.bmp", m_renderer, r, g, b);
     m_selectCase = charger_image_transparente("SelectCadre.bmp", m_renderer, r, g, b);
@@ -257,8 +259,8 @@ void Display::displayMenu(vector<Character> &persos)
             SDL_Color color;
             for (unsigned j = 0; j < persos[i].getMaxSpell(); j++)
             {
-                char textChar[10];
-                sprintf_s(textChar, "%s", persos[i].getSpellName(j).c_str());
+                string textChar = "";
+                textChar += persos[i].getSpellName(j);
                 if (j == persos[i].getSelectedSpell())
                 {
                     color = { 255, 215, 0, 255 };
@@ -267,7 +269,7 @@ void Display::displayMenu(vector<Character> &persos)
                 {
                     color = { 255, 255, 255, 255 };
                 }
-                text.push_back(charger_texte(textChar, m_renderer, m_font8, color));
+                text.push_back(charger_texte(textChar.c_str(), m_renderer, m_font8, color));
             }
 
             SDL_Rect posText;
@@ -465,75 +467,133 @@ void Display::createInfoCard(Character &perso, int pos) {
         SDL_Texture* nom = charger_texte(perso.getName().c_str(), m_renderer, m_font8, color);
         SDL_QueryTexture(nom, NULL, NULL, &texteW, &texteH);
 
-        SDL_Rect nom_pos;
-        nom_pos.x = rectCard.x + 35;
-        nom_pos.y = 25;
-        nom_pos.w = texteW;
-        nom_pos.h = texteH;
+        SDL_Rect pos;
+        pos.x = rectCard.x + 35;
+        pos.y = 25;
+        pos.w = texteW;
+        pos.h = texteH;
 
-        SDL_RenderCopy(m_renderer, nom, NULL, &nom_pos);
+        SDL_RenderCopy(m_renderer, nom, NULL, &pos);
 
         string ac = "ac ";
         ac += to_string(perso.getAc());
         SDL_Texture* acText = charger_texte(ac.c_str(), m_renderer, m_font8, color);
         SDL_QueryTexture(acText, NULL, NULL, &texteW, &texteH);
 
-        SDL_Rect textePos;
-        textePos.x = rectCard.x + rectCard.w - texteW - 40;
-        textePos.y = 25;
-        textePos.w = texteW;
-        textePos.h = texteH;
+        pos.x = rectCard.x + rectCard.w - texteW - 40;
+        pos.y = 25;
+        pos.w = texteW;
+        pos.h = texteH;
 
-        SDL_RenderCopy(m_renderer, acText, NULL, &textePos);
+        SDL_RenderCopy(m_renderer, acText, NULL, &pos);
 
-        char hp[10];
-        sprintf_s(hp, "%i/%i", perso.getHp(), perso.getMaxHp());
-        SDL_Texture* hpStr = charger_texte(hp, m_renderer, m_font8, color);
+        string hp = to_string(perso.getHp());
+        hp += "/";
+        hp += to_string(perso.getMaxHp());
+        SDL_Texture* hpStr = charger_texte(hp.c_str(), m_renderer, m_font8, color);
         SDL_QueryTexture(hpStr, NULL, NULL, &texteW, &texteH);
 
         
-        textePos.x = rectCard.x + 20;
-        textePos.y = 55;
-        textePos.w = texteW;
-        textePos.h = texteH;
+        pos.x = rectCard.x + 20;
+        pos.y = 55;
+        pos.w = texteW;
+        pos.h = texteH;
 
-        SDL_RenderCopy(m_renderer, hpStr, NULL, &textePos);
+        SDL_RenderCopy(m_renderer, hpStr, NULL, &pos);
 
-        SDL_Rect UnderBar;
-        UnderBar.x = rectCard.x + 90;
-        UnderBar.y = 55;
-        UnderBar.w = (rectCard.x + rectCard.w - 20) - UnderBar.x;
-        UnderBar.h = textePos.h;
+        pos.x = rectCard.x + 90;
+        pos.y = 55;
+        pos.w = (rectCard.x + rectCard.w - 20) - pos.x;
+        pos.h = pos.h;
         
-        SDL_RenderCopy(m_renderer, m_underBar, NULL, &UnderBar);
+        SDL_RenderCopy(m_renderer, m_underBar, NULL, &pos);
 
-        SDL_Rect Bar;
-        Bar.x = UnderBar.x+2;
-        Bar.y = UnderBar.y;
-        Bar.w = (UnderBar.w * perso.getHp() / perso.getMaxHp())-4;
-        Bar.h = UnderBar.h;
+        pos.x = pos.x+2;
+        pos.y = pos.y;
+        pos.w = (pos.w * perso.getHp() / perso.getMaxHp())-4;
+        pos.h = pos.h;
 
-        SDL_RenderCopy(m_renderer, m_bar, NULL, &Bar);
+        SDL_RenderCopy(m_renderer, m_bar, NULL, &pos);
         
         SDL_QueryTexture(m_mana, NULL, NULL, &texteW, &texteH);
 
-        SDL_Rect Mana;
-        Mana.y = 72;
-        Mana.w = texteW;
-        Mana.h = texteH;
+        pos.y = 72;
+        pos.w = texteW;
+        pos.h = texteH;
 
         for (unsigned i = 0; i < 5; i++)
         {
-            Mana.x = 47+36*i + rectCard.x;
+            pos.x = 47+36*i + rectCard.x;
             if (i+1 <= perso.getMana())
             {
-                SDL_RenderCopy(m_renderer, m_mana, NULL, &Mana);
+                SDL_RenderCopy(m_renderer, m_mana, NULL, &pos);
             }
             else 
             {
-                SDL_RenderCopy(m_renderer, m_blackMana, NULL, &Mana);
+                SDL_RenderCopy(m_renderer, m_blackMana, NULL, &pos);
             }
         }
+
+        SDL_Rect iconRect;
+        iconRect.y = 0;
+        iconRect.w = 16;
+        iconRect.h = 16;
+
+        pos.x = rectCard.x + 40;
+        pos.y = rectCard.h;
+        pos.w = 32;
+        pos.h = 32;
+
+        if (perso.getTerrain() != Grass)
+        {
+            switch (perso.getTerrain())
+            {
+            case Forest:
+                iconRect.x = 0;
+                break;
+            case Bastion:
+                iconRect.x = 16;
+                break;
+            case Ruin:
+                iconRect.x = 2 * 16;
+                break;
+            case River:
+                iconRect.x = 3 * 16;
+                break;
+            default:
+                break;
+            }
+
+            SDL_RenderCopy(m_renderer, m_statusMarker, &iconRect, &pos);
+        }
+
+        bool* stats = perso.getStatus();
+
+        iconRect.y = 16;
+
+        for (unsigned i = 0; i < 3; i++)
+        {
+            if (stats[i])
+            {
+                pos.x = pos.x + 5 + pos.w;
+                iconRect.x = i*16;
+                SDL_RenderCopy(m_renderer, m_statusMarker, &iconRect, &pos);
+            }
+        }
+
+        iconRect.y = 32;
+
+        for (unsigned i = 0; i < 3; i++)
+        {
+            if (stats[i+3])
+            {
+                pos.x = pos.x + 5 + pos.w;
+                iconRect.x = i * 16;
+                SDL_RenderCopy(m_renderer, m_statusMarker, &iconRect, &pos);
+            }
+        }
+
+        delete[] stats;
 
         SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);
 
@@ -550,6 +610,7 @@ void Display::desallouer()
     SDL_DestroyTexture(m_redMageTexture);
     SDL_DestroyTexture(m_blueMageTexture);
     SDL_DestroyTexture(m_endMageTexture);
+    SDL_DestroyTexture(m_statusMarker);
     SDL_DestroyTexture(m_bar);
     SDL_DestroyTexture(m_underBar);
     SDL_DestroyTexture(m_infoCard);

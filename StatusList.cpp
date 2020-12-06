@@ -13,6 +13,24 @@ StatusList::StatusList()
 	m_terrain = Grass;
 }
 
+TerrainEffect StatusList::getTerrain()
+{
+	return m_terrain;
+}
+
+bool* StatusList::getStatusActive()
+{
+	bool* effects = new bool[6];
+	effects[0] = (m_shieldUp.power != 0) ? true : false;
+	effects[1] = (m_arcanaUp.power != 0) ? true : false;
+	effects[2] = (m_precisionUp.power != 0) ? true : false;
+	effects[3] = (m_shieldDown.power != 0) ? true : false;
+	effects[4] = (m_arcanaDown.power != 0) ? true : false;
+	effects[5] = (m_precisionDown.power != 0) ? true : false;
+
+	return effects;
+}
+
 void StatusList::resetAll()
 {
 	if (m_shieldUp.timer == 0) { m_shieldUp.power = 0; }
@@ -78,6 +96,30 @@ void StatusList::setShieldDown(int power, int timer)
 {
 	m_shieldDown.power = power;
 	m_shieldDown.timer = timer;
+}
+
+void StatusList::setAttackUp(int power, int timer)
+{
+	m_arcanaUp.power = power;
+	m_arcanaUp.timer = timer;
+}
+
+void StatusList::setAttackDown(int power, int timer)
+{
+	m_arcanaDown.power = power;
+	m_arcanaDown.timer = timer;
+}
+
+void StatusList::setPrecisionUp(int power, int timer)
+{
+	m_precisionUp.power = power;
+	m_precisionUp.timer = timer;
+}
+
+void StatusList::setPrecisionDown(int power, int timer)
+{
+	m_precisionDown.power = power;
+	m_precisionDown.timer = timer;
 }
 
 void StatusList::setTerrain(int terrain)

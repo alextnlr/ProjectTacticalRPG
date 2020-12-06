@@ -11,6 +11,8 @@ class StatusList
 {
 public:
 	StatusList();
+	TerrainEffect getTerrain();
+	bool* getStatusActive();
 	void resetAll();
 	void decreaseTimerAll();
 	int getShield();
@@ -18,6 +20,10 @@ public:
 	int getArcana();
 	void setShieldUp(int power, int timer);
 	void setShieldDown(int power, int timer);
+	void setAttackUp(int power, int timer);
+	void setAttackDown(int power, int timer);
+	void setPrecisionUp(int power, int timer);
+	void setPrecisionDown(int power, int timer);
 	void setTerrain(int terrain);
 private:
 	Status m_shieldUp;

@@ -1,5 +1,5 @@
 #include <iostream>
-#include "fonctions_SDL.h"
+#include "SDLFunctions.h"
 
 using namespace std;
 
@@ -11,7 +11,7 @@ SDL_Texture* charger_image(const char* nomFichier, SDL_Renderer* renderer) {
         cout << "Erreur de chargement de " << nomFichier << " : " <<SDL_GetError() << endl;
         exit(EXIT_FAILURE);
     }
-    SDL_Texture* monImage = SDL_CreateTextureFromSurface(renderer,image);  //La texture monImage contient maintenant l'image importée
+    SDL_Texture* monImage = SDL_CreateTextureFromSurface(renderer,image);
 
     return monImage;
 

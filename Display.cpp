@@ -1,4 +1,3 @@
-#include <iostream>
 #include "Display.h"
 
 using namespace std;
@@ -18,7 +17,7 @@ Display::Display()
 
     m_widthWindow = 22*64;
     m_heightWindow = 10*64;
-    m_window = SDL_CreateWindow("MageBattle",SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,m_widthWindow,m_heightWindow,SDL_WINDOW_RESIZABLE);
+    m_window = SDL_CreateWindow("Mage Battle",SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,m_widthWindow,m_heightWindow,SDL_WINDOW_RESIZABLE);
     if(m_window == NULL) {
         cout << "Erreur creation fenetre: " << SDL_GetError() << endl;
         SDL_Quit();
@@ -26,44 +25,60 @@ Display::Display()
 
     m_renderer = SDL_CreateRenderer(m_window, -1, SDL_RENDERER_ACCELERATED);
 
-    m_background = charger_image("Tiles.bmp",m_renderer);
+    m_background = charger_image("./Assets/Textures/Tiles.bmp",m_renderer);
     if(m_background == NULL) {
         cout << "Erreur chargement fond: " << SDL_GetError() << endl;
     }
 
     Uint8 r = 128, g = 160, b = 128;
-    m_blueMageTexture = charger_image_transparente("MageM.bmp",m_renderer, r, g, b);
-    m_redMageTexture = charger_image_transparente("MageMEvil.bmp",m_renderer, r, g, b);
-    m_endMageTexture = charger_image_transparente("MageF.bmp", m_renderer, r, g, b);
+    m_blueMageTexture = charger_image_transparente("./Assets/Textures/MageM.bmp",m_renderer, r, g, b);
+    m_redMageTexture = charger_image_transparente("./Assets/Textures/MageMEvil.bmp",m_renderer, r, g, b);
+    m_endMageTexture = charger_image_transparente("./Assets/Textures/MageF.bmp", m_renderer, r, g, b);
     if(m_redMageTexture == NULL || m_blueMageTexture == NULL || m_endMageTexture == NULL) {
         cout << "Erreur chargement texture de mage: " << SDL_GetError() << endl;
     }
 
-    m_statusMarker = charger_image_transparente("StatusMarker.bmp", m_renderer, r, g, b);
-    m_infoCard = charger_image_transparente("InfoCard.bmp", m_renderer, r, g, b);
-    m_menu = charger_image_transparente("Menu.bmp", m_renderer, r, g, b);
-    m_selectCase = charger_image_transparente("SelectCadre.bmp", m_renderer, r, g, b);
-    m_spellSelect = charger_image_transparente("SpellSelect.bmp", m_renderer, r, g, b);
-    m_spellNoSelect = charger_image_transparente("SpellNoSelect.bmp", m_renderer, r, g, b);
-    m_d20 = charger_image_transparente("d20.bmp", m_renderer, r, g, b);
+    m_statusMarker = charger_image_transparente("./Assets/Textures/StatusMarker.bmp", m_renderer, r, g, b);
+    if (m_statusMarker == NULL) {
+        cout << "Erreur chargement texture Status Markers: " << SDL_GetError() << endl;
+    }
+
+    m_infoCard = charger_image_transparente("./Assets/Textures/InfoCard.bmp", m_renderer, r, g, b);
+    m_menu = charger_image_transparente("./Assets/Textures/Menu.bmp", m_renderer, r, g, b);
     if (m_infoCard == NULL || m_menu == NULL) {
         cout << "Erreur chargement texture info Card: " << SDL_GetError() << endl;
     }
-    m_underBar = charger_image_transparente("UnderBar.bmp", m_renderer, r, g, b);
-    m_bar = charger_image_transparente("Bar.bmp", m_renderer, r, g, b);
+
+    m_selectCase = charger_image_transparente("./Assets/Textures/SelectCadre.bmp", m_renderer, r, g, b);
+    if (m_selectCase == NULL) {
+        cout << "Erreur chargement texture Select Case: " << SDL_GetError() << endl;
+    }
+    m_spellSelect = charger_image_transparente("./Assets/Textures/SpellSelect.bmp", m_renderer, r, g, b);
+    m_spellNoSelect = charger_image_transparente("./Assets/Textures/SpellNoSelect.bmp", m_renderer, r, g, b);
+    if (m_spellNoSelect == NULL || m_spellSelect == NULL) {
+        cout << "Erreur chargement texture Spell Case: " << SDL_GetError() << endl;
+    }
+
+    m_d20 = charger_image_transparente("./Assets/Textures/d20.bmp", m_renderer, r, g, b);
+    if (m_d20 == NULL) {
+        cout << "Erreur chargement texture d20: " << SDL_GetError() << endl;
+    }
+    
+    m_underBar = charger_image_transparente("./Assets/Textures/UnderBar.bmp", m_renderer, r, g, b);
+    m_bar = charger_image_transparente("./Assets/Textures/Bar.bmp", m_renderer, r, g, b);
     if (m_underBar == NULL || m_bar == NULL) {
         cout << "Erreur chargement texture bar: " << SDL_GetError() << endl;
     }
-    m_mana = charger_image_transparente("Mana.bmp", m_renderer, r, g, b);
-    m_blackMana = charger_image_transparente("BlackMana.bmp", m_renderer, r, g, b);
+    m_mana = charger_image_transparente("./Assets/Textures/Mana.bmp", m_renderer, r, g, b);
+    m_blackMana = charger_image_transparente("./Assets/Textures/BlackMana.bmp", m_renderer, r, g, b);
     if (m_mana == NULL || m_blackMana == NULL) {
         cout << "Erreur chargement texture mana: " << SDL_GetError() << endl;
     }
 
-    m_font64 = TTF_OpenFont("prstartk.ttf", 64);
-    m_font16 = TTF_OpenFont("prstartk.ttf", 16);
-    m_font8 = TTF_OpenFont("prstartk.ttf", 12);
-    if(!m_font16) {
+    m_font64 = TTF_OpenFont("./Assets/prstartk.ttf", 64);
+    m_font16 = TTF_OpenFont("./Assets/prstartk.ttf", 16);
+    m_font8 = TTF_OpenFont("./Assets/prstartk.ttf", 12);
+    if(!m_font16 || !m_font8 || !m_font64) {
         cout << "Erreur du chargement de la font" << endl;
     }
 
@@ -134,10 +149,10 @@ void Display::displayCharacters(vector<Character> &persos)
 {
     for(int i = 0 ; i < persos.size() ; i++)
     {
-        if (persos[i].estVivant())
+        if (persos[i].isAlive())
         {
             SDL_Rect rectPos = persos[i].getCoord();
-            SDL_Rect rectFrame = persos[i].afficherPersoBarre(m_physicalFrame);
+            SDL_Rect rectFrame = persos[i].getFrame(m_physicalFrame);
 
             if (persos[i].getState() >= 0)
             {
@@ -174,9 +189,9 @@ bool Display::displayDamages(vector<Character>& persos, int roll)
         if (perso.getHurt() && !roll) {
             SDL_Color color = { 0,0,0,255 };
             SDL_Texture* text = charger_texte(to_string(perso.getHurt()).c_str(), m_renderer, m_font16, color);
-            int texteW, texteH;
-            SDL_QueryTexture(text, NULL, NULL, &texteW, &texteH);
-            SDL_Rect rectText = perso.afficherDegats(texteW, texteH);
+            int textW, textH;
+            SDL_QueryTexture(text, NULL, NULL, &textW, &textH);
+            SDL_Rect rectText = perso.getDmgDisplayer(textW, textH);
             SDL_RenderCopy(m_renderer, text, NULL, &rectText);
             SDL_DestroyTexture(text);
             found = true;
@@ -249,7 +264,7 @@ bool Display::displayRoll(int &roll)
     return (m_timerShowRoll > 0);
 }
 
-void Display::displayMenu(vector<Character> &persos)
+void Display::displayMenu(vector<Character> &persos, MaptabP *map)
 {
     for (unsigned i = 0; i < persos.size(); i++)
     {
@@ -272,8 +287,7 @@ void Display::displayMenu(vector<Character> &persos)
                 text.push_back(charger_texte(textChar.c_str(), m_renderer, m_font8, color));
             }
 
-            SDL_Rect posText;
-            posText.x = persos[i].getCoord().x + 20 + 64;
+            
             int textW, textH, maxTextW;
 
             SDL_QueryTexture(text[0], NULL, NULL, &maxTextW, &textH);
@@ -289,15 +303,36 @@ void Display::displayMenu(vector<Character> &persos)
             SDL_Rect posBackground;
             posBackground.w = maxTextW + 30;
             posBackground.h = (20)*text.size() + textH + 20;
-            posBackground.x = posText.x - 15;
-            posBackground.y = persos[i].getCoord().y - 20;
+            if (persos[i].getCoord().x + 5 + 64 + posBackground.w < m_widthWindow)
+            {
+                posBackground.x = persos[i].getCoord().x + 5 + 64;
+            }
+            else
+            {
+                posBackground.x = persos[i].getCoord().x - 5 - posBackground.w;
+            }
+            if (persos[i].getCoord().y - 20 + posBackground.h > m_heightWindow)
+            {
+                posBackground.y = m_heightWindow - posBackground.h - 1;
+            }
+            else if (persos[i].getCoord().y - 20 < 0)
+            {
+                posBackground.y = 0;
+            }
+            else
+            {
+                posBackground.y = persos[i].getCoord().y - 20;
+            }
 
             SDL_RenderCopy(m_renderer, m_menu, NULL, &posBackground);
+
+            SDL_Rect posText;
+            posText.x = posBackground.x + 15;
 
             for (unsigned j = 0 ; j < text.size() ; j++)
             {
                 SDL_QueryTexture(text[j], NULL, NULL, &textW, &textH);
-                posText.y = persos[i].getCoord().y + j*20;
+                posText.y = posBackground.y + j*20 + 20;
                 posText.w = textW;
                 posText.h = textH;
                 SDL_RenderCopy(m_renderer, text[j], NULL, &posText);
@@ -352,7 +387,7 @@ void Display::displaySpellRange(vector<Character> &persos, const MaptabP *map)
                             {
                                 if (i != j)
                                 {
-                                    if (persos[j].estVivant() && persos[j].getCoord().x == rectSpellGrid.x && persos[j].getCoord().y == rectSpellGrid.y)
+                                    if (persos[j].isAlive() && persos[j].getCoord().x == rectSpellGrid.x && persos[j].getCoord().y == rectSpellGrid.y)
                                     {
                                         double proba = (double)persos[j].getAc() - persos[i].getBonusAttack();
                                         proba = (21-proba)/20*100;
@@ -398,26 +433,26 @@ bool Display::displayTeam(int team, int roll)
         SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);
 
         SDL_Texture* teamName;
-        int texteW, texteH;
+        int textW, textH;
         SDL_Rect pos;
         SDL_Color color;
         if (m_currentTeam == 0)
         {
             color = { 0, 0, 255, 255 };
             teamName = charger_texte("Blue Team Turn", m_renderer, m_font64, color);
-            SDL_QueryTexture(teamName, NULL, NULL, &texteW, &texteH);
+            SDL_QueryTexture(teamName, NULL, NULL, &textW, &textH);
         }
         else
         {
             color = { 255, 0, 0, 255 };
             teamName = charger_texte("Red Team Turn", m_renderer, m_font64, color);
-            SDL_QueryTexture(teamName, NULL, NULL, &texteW, &texteH);
+            SDL_QueryTexture(teamName, NULL, NULL, &textW, &textH);
         }
 
-        pos.x = (m_widthWindow - texteW)/2;
-        pos.y = m_heightWindow/2-texteH;
-        pos.w = texteW;
-        pos.h = texteH;
+        pos.x = (m_widthWindow - textW)/2;
+        pos.y = m_heightWindow/2-textH;
+        pos.w = textW;
+        pos.h = textH;
 
         SDL_RenderCopy(m_renderer, teamName, NULL, &pos);
 
@@ -448,7 +483,7 @@ void Display::displayInfoCard(vector<Character> &persos, int xmouse, int ymouse)
 }
 
 void Display::createInfoCard(Character &perso, int pos) {
-    if (perso.estVivant())
+    if (perso.isAlive())
     {
         SDL_SetRenderDrawColor(m_renderer, 160, 82, 45, 255);
         SDL_Rect rectCard;
@@ -460,30 +495,30 @@ void Display::createInfoCard(Character &perso, int pos) {
 
         SDL_SetRenderDrawColor(m_renderer, 255, 255, 255, 255);
 
-        int texteW, texteH;
+        int textW, textH;
 
         SDL_Color color = { 255, 255, 255, 255 };
 
         SDL_Texture* nom = charger_texte(perso.getName().c_str(), m_renderer, m_font8, color);
-        SDL_QueryTexture(nom, NULL, NULL, &texteW, &texteH);
+        SDL_QueryTexture(nom, NULL, NULL, &textW, &textH);
 
         SDL_Rect pos;
         pos.x = rectCard.x + 35;
         pos.y = 25;
-        pos.w = texteW;
-        pos.h = texteH;
+        pos.w = textW;
+        pos.h = textH;
 
         SDL_RenderCopy(m_renderer, nom, NULL, &pos);
 
         string ac = "ac ";
         ac += to_string(perso.getAc());
         SDL_Texture* acText = charger_texte(ac.c_str(), m_renderer, m_font8, color);
-        SDL_QueryTexture(acText, NULL, NULL, &texteW, &texteH);
+        SDL_QueryTexture(acText, NULL, NULL, &textW, &textH);
 
-        pos.x = rectCard.x + rectCard.w - texteW - 40;
+        pos.x = rectCard.x + rectCard.w - textW - 40;
         pos.y = 25;
-        pos.w = texteW;
-        pos.h = texteH;
+        pos.w = textW;
+        pos.h = textH;
 
         SDL_RenderCopy(m_renderer, acText, NULL, &pos);
 
@@ -491,13 +526,13 @@ void Display::createInfoCard(Character &perso, int pos) {
         hp += "/";
         hp += to_string(perso.getMaxHp());
         SDL_Texture* hpStr = charger_texte(hp.c_str(), m_renderer, m_font8, color);
-        SDL_QueryTexture(hpStr, NULL, NULL, &texteW, &texteH);
+        SDL_QueryTexture(hpStr, NULL, NULL, &textW, &textH);
 
         
         pos.x = rectCard.x + 20;
         pos.y = 55;
-        pos.w = texteW;
-        pos.h = texteH;
+        pos.w = textW;
+        pos.h = textH;
 
         SDL_RenderCopy(m_renderer, hpStr, NULL, &pos);
 
@@ -515,11 +550,11 @@ void Display::createInfoCard(Character &perso, int pos) {
 
         SDL_RenderCopy(m_renderer, m_bar, NULL, &pos);
         
-        SDL_QueryTexture(m_mana, NULL, NULL, &texteW, &texteH);
+        SDL_QueryTexture(m_mana, NULL, NULL, &textW, &textH);
 
         pos.y = 72;
-        pos.w = texteW;
-        pos.h = texteH;
+        pos.w = textW;
+        pos.h = textH;
 
         for (unsigned i = 0; i < 5; i++)
         {
@@ -600,6 +635,39 @@ void Display::createInfoCard(Character &perso, int pos) {
         SDL_DestroyTexture(hpStr);
         SDL_DestroyTexture(nom);
     }
+}
+
+void Display::displayEndMenu(int victory)
+{
+        SDL_SetRenderDrawColor(m_renderer, 0, 0, 0, 255);
+        SDL_Rect blackScreen{ 0,0,m_widthWindow,m_heightWindow };
+        SDL_RenderFillRect(m_renderer, &blackScreen);
+
+        SDL_Texture* teamName;
+        int textW, textH;
+        SDL_Rect pos;
+        SDL_Color color;
+        if (victory == 0)
+        {
+            color = { 0, 0, 255, 255 };
+            teamName = charger_texte("Blue Team Victory", m_renderer, m_font64, color);
+            SDL_QueryTexture(teamName, NULL, NULL, &textW, &textH);
+        }
+        else
+        {
+            color = { 255, 0, 0, 255 };
+            teamName = charger_texte("Red Team Victory", m_renderer, m_font64, color);
+            SDL_QueryTexture(teamName, NULL, NULL, &textW, &textH);
+        }
+
+        pos.x = (m_widthWindow - textW) / 2;
+        pos.y = m_heightWindow / 2 - textH;
+        pos.w = textW;
+        pos.h = textH;
+
+        SDL_RenderCopy(m_renderer, teamName, NULL, &pos);
+
+        SDL_DestroyTexture(teamName);
 }
 
 void Display::desallouer()

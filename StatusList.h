@@ -15,6 +15,7 @@ public:
 	bool* getStatusActive();
 	void resetAll();
 	void decreaseTimerAll();
+	void cleanAll();
 	int getShield();
 	int getPrecision();
 	int getArcana();

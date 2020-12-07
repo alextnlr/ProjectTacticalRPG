@@ -2,7 +2,7 @@
 #define TERRAIN_H_INCLUDED
 
 #include <iostream>
-#include "fonctions_fichier.h"
+#include "Character.h"
 
 using namespace std;
 

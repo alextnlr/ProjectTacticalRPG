@@ -17,11 +17,12 @@ public:
     void displayCharacters(vector<Character> &persos);
     bool displayDamages(vector<Character>& persos, int roll);
     bool displayRoll(int& roll);
-    void displayMenu(vector<Character> &persos);
+    void displayMenu(vector<Character> &persos, MaptabP* map);
     void displaySpellRange(vector<Character> &persos, const MaptabP *map);
     bool displayTeam(int team, int roll);
     void displayInfoCard(vector<Character> &persos, int xmouse, int ymouse);
     void createInfoCard(Character &perso, int pos);
+    void displayEndMenu(int victory);
     void desallouer();
 private:
     int m_widthWindow;

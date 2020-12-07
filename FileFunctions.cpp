@@ -1,5 +1,5 @@
 #include <iostream>
-#include "fonctions_fichier.h"
+#include "FileFunctions.h"
 
 using namespace std;
 

@@ -51,6 +51,18 @@ void StatusList::decreaseTimerAll()
 	if (m_arcanaDown.timer - 1 >= 0) { m_arcanaDown.timer--; }
 }
 
+void StatusList::cleanAll()
+{
+	m_shieldUp.timer = 0;
+	m_shieldDown.timer = 0;
+	m_precisionUp.timer = 0;
+	m_precisionDown.timer = 0;
+	m_arcanaUp.timer = 0;
+	m_arcanaDown.timer = 0;
+
+	resetAll();
+}
+
 int StatusList::getShield()
 {
 	if (m_terrain == Bastion || m_terrain == Ruin || m_terrain == Forest)

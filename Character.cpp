@@ -84,7 +84,7 @@ Character::Character(Character const& copie)
 
 void Character::takeDamage(int dmg, int attackRoll, spellOutEffect effect, int power)
 {
-    if (attackRoll >= getAc())
+    if (attackRoll >= getAc() || dmg == 0)
     {
         m_hp -= dmg;
 
@@ -103,21 +103,20 @@ void Character::takeDamage(int dmg, int attackRoll, spellOutEffect effect, int p
 
 void Character::attack(Character &cible, const MaptabP *map, int attackRoll)
 {
-    if (cible.estVivant())
+    if (cible.isAlive())
     {
         MaptabP mapTemp = m_spells[m_selectedSpell].spellGrid(map, m_pos[0], m_pos[1])[m_facing];
-        for (unsigned x = 0; x < map->col; x++)
+        if (mapTemp.mapInt[cible.m_pos[0]][cible.m_pos[1]] == 1)
         {
-            for (unsigned y = 0; y < map->lig; y++)
-            {
-                if (mapTemp.mapInt[x][y] == 1 && cible.m_pos[0] == x && cible.m_pos[1] == y)
-                {
-                    cible.takeDamage(m_spells[m_selectedSpell].getDegats() + getBonusDamage(), attackRoll + getBonusAttack(), m_spells[m_selectedSpell].activateOutEffect(), m_spells[m_selectedSpell].getPowerOutEffect());
-                }
-            }
+            cible.takeDamage(m_spells[m_selectedSpell].getDegats() + getBonusDamage(), attackRoll + getBonusAttack(), m_spells[m_selectedSpell].activateOutEffect(), m_spells[m_selectedSpell].getPowerOutEffect());
         }
         deallocate(&mapTemp);
     }
+}
+
+bool Character::canAttack()
+{
+    return m_mana-m_spells[m_selectedSpell].getCost() >= 0;
 }
 
 int Character::getBonusAttack()
@@ -165,7 +164,7 @@ void Character::activateInEffect()
         m_status.setPrecisionUp(4, m_spells[m_selectedSpell].getPowerInEffect());
         break;
     case Clean:
-        m_status.resetAll();
+        m_status.cleanAll();
         break;
     default:
         break;
@@ -189,7 +188,7 @@ void Character::activateOutEffect(spellOutEffect effect, int power)
         heal(power);
         break;
     case CleanOther:
-        m_status.resetAll();
+        m_status.cleanAll();
         break;
     default:
         break;
@@ -204,14 +203,14 @@ void Character::decreaseMana()
     }
 }
 
-SDL_Rect Character::afficherDegats(int texteW, int texteH)
+SDL_Rect Character::getDmgDisplayer(int textW, int textH)
 {
 
     SDL_Rect texte_pos;
     texte_pos.x = m_pos[0]*64+16;
     texte_pos.y = m_pos[1]*64-m_dgtAnim;
-    texte_pos.w = texteW;
-    texte_pos.h = texteH;
+    texte_pos.w = textW;
+    texte_pos.h = textH;
 
     if(m_dgtAnim > 20)
     {
@@ -224,7 +223,7 @@ SDL_Rect Character::afficherDegats(int texteW, int texteH)
     return texte_pos;
 }
 
-void Character::deplacer(int x, int y)
+void Character::setPosition(int x, int y)
 {
     m_pos[0] = x;
     m_pos[1] = y;
@@ -268,6 +267,11 @@ void Character::walk(int direction, MaptabP *map)
     setWait(5);
 }
 
+void Character::checkTerrain(const MaptabP *map)
+{
+    m_status.setTerrain(map->mapInt[m_pos[0]][m_pos[1]]);
+}
+
 void Character::updateStatus()
 {
     m_status.decreaseTimerAll();
@@ -295,7 +299,7 @@ SDL_Rect Character::getCoord() const
     return rect;
 }
 
-bool Character::estVivant() const
+bool Character::isAlive() const
 {
     return m_hp>0;
 }
@@ -374,7 +378,7 @@ void Character::recoverMana(int nbMana)
     }
 }
 
-SDL_Rect Character::afficherPersoBarre(bool phy_frame)
+SDL_Rect Character::getFrame(bool phy_frame)
 {
     SDL_Rect Frame;
     int trueFrame = m_frameIdle/3;

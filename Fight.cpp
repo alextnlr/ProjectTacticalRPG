@@ -1,14 +1,14 @@
 #include "Fight.h"
-#include <iostream>
+
 using namespace std;
 
 Fight::Fight()
 {
     m_wait = 0;
-    m_player = 0;
+    m_player = rand()%2;
 }
 
-vector<Character> Fight::createCharacter(const MaptabP &map)
+vector<Character> Fight::createCharacter(const MaptabP *map)
 {
     vector<Spell> spellList;
     spellList.push_back(Spell("Artemis", "2d6+2", Line, 1, PrecisionUp, 3));
@@ -16,15 +16,16 @@ vector<Character> Fight::createCharacter(const MaptabP &map)
     spellList.push_back(Spell("Poseidon", "1d8+4", Cone, 2, ShieldDown, 4));
     spellList.push_back(Spell("Zeus", "2d6+3", Line, 2, AttackDown, 4));
     spellList.push_back(Spell("Ades", "1d6+3", Shock, 2, Heal, 15, AttackDown, 2));
-    spellList.push_back(Spell("Nox", "1d6+0", Shock, 1, PrecisionDown, 4));
+    spellList.push_back(Spell("Nyx", "1d6+0", Shock, 1, PrecisionDown, 4));
     spellList.push_back(Spell("Aphrodite", "0d0+0", Self, 2, Heal, 25));
     spellList.push_back(Spell("Athena", "2d6+3", Cac, 2, ShieldUp, 2));
-    spellList.push_back(Spell("Hephaistos", "2d4+5", Cone, 1, ShieldDown, 2));
+    spellList.push_back(Spell("Hephaestus", "2d4+5", Cone, 1, ShieldDown, 2));
     spellList.push_back(Spell("Hermes", "1d4+5", Line, 1, PrecisionUp, 3));
     spellList.push_back(Spell("Dionysos", "0d0+0", Self, 1, AttackUp, 5));
-    spellList.push_back(Spell("Demeter", "0d0+0", Self, 1, Clean, 0));
+    spellList.push_back(Spell("Demeter", "0d0+0", Self, 1, Clean, 1));
     spellList.push_back(Spell("Hestia", "0d0+0", Cac, 1, HealOther, 15));
-    spellList.push_back(Spell("Hera", "0d0+0", Cac, 2, CleanOther, 0));
+    spellList.push_back(Spell("Nemesis", "0d0+0", Shock, 2, Clean, 1, CleanOther, 1));
+    spellList.push_back(Spell("Apollo", "1d6+2", Line, 0, Focus, 2));
 
     vector<string> name = {"Achille", "Belleph", "Heracles", "Jason", "OEdipe", "Persee", "Thesee", "Ulysse", "Ajax", "Amphi",
                             "Antigone", "Ariane", "Danaos", "Dedale", "Hector", "Leda", "Minos", "Nestor"};
@@ -36,7 +37,7 @@ vector<Character> Fight::createCharacter(const MaptabP &map)
 
     for (unsigned i = 0; i < 8; i++)
     {
-        MaptabP mapcolli = createColli(charac, &map, i);
+        MaptabP mapcolli = createColli(charac, map, i);
         aled = {-1, -1, -1};
         for (unsigned j = 0; j < 3; j++)
         {
@@ -51,13 +52,13 @@ vector<Character> Fight::createCharacter(const MaptabP &map)
             spellListTemp.push_back(spellList[spellRand]);
         }
 
-        int x = (map.col * (i % 2)) - rand() % 3;
-        int y = rand() % map.lig;
+        int x = ((map->col-1) * (i % 2)) - (rand() % 3);
+        int y = rand() % map->lig;
 
         while (mapcolli.mapInt[abs(x)][y] < 0)
         {
-            x = (map.col * (i % 2)) - rand() % 3;
-            y = rand() % map.lig;
+            x = ((map->col-1) * (i % 2)) - (rand() % 3);
+            y = rand() % map->lig;
         }
         
         charac.push_back(Character(rand() % 8 + 25, rand() % 4 + 11, spellListTemp, name[rand() % name.size()], i % 2, abs(x), y));
@@ -66,7 +67,40 @@ vector<Character> Fight::createCharacter(const MaptabP &map)
         deallocate(&mapcolli);
     }
 
+    for (Character &onechar : charac)
+    {
+        onechar.checkTerrain(map);
+    }
+
     return charac;
+}
+
+int Fight::checkForVictory(vector<Character>& charac)
+{
+    bool blueVictory = true;
+    bool redVictory = true;
+    for (Character &onechara : charac)
+    {
+        if (onechara.getTeam() == 1 && onechara.isAlive())
+        {
+            blueVictory = false;
+        }
+        else if(onechara.getTeam() == 0 && onechara.isAlive())
+        {
+            redVictory = false;
+        }
+    }
+
+    if (blueVictory)
+    {
+        return 0;
+    }
+    else if (redVictory)
+    {
+        return 1;
+    }
+
+    return -1;
 }
 
 void Fight::move(vector<Character> &persos, int dir, const MaptabP *map)
@@ -117,7 +151,7 @@ MaptabP Fight::createColli(vector<Character> &persos, const MaptabP *map, int nu
                 {
                     if (i != num) 
                     {
-                        if (persos[i].estVivant() && persos[i].getCoord().x / 64 == x && persos[i].getCoord().y / 64 == y)
+                        if (persos[i].isAlive() && persos[i].getCoord().x / 64 == x && persos[i].getCoord().y / 64 == y)
                         {
                             colli.mapInt[x][y] = -1;
                         }
@@ -192,7 +226,7 @@ int Fight::shiftAction(vector<Character>& persos, const MaptabP *map)
             {
                 persos[i].setState(5);
             }
-            else if (persos[i].getTeam() == m_player && persos[i].getState() == 5)
+            else if (persos[i].getTeam() == m_player && persos[i].getState() == 5 && persos[i].canAttack())
             {
                 persos[i].setState(6);
                 persos[i].setFacing(map, 2);
@@ -256,7 +290,7 @@ void Fight::autoNewTurn(vector<Character> &persos)
     int nbInTeam = 0;
     for (Character & perso : persos)
     {
-        if (perso.estVivant() && perso.getTeam() == m_player)
+        if (perso.isAlive() && perso.getTeam() == m_player)
         {
             nbInTeam++;
         }
@@ -265,7 +299,7 @@ void Fight::autoNewTurn(vector<Character> &persos)
     int nbEndTurn = 0;
     for (Character & perso : persos)
     {
-        if (perso.estVivant() && perso.getEnd() && perso.getTeam() == m_player)
+        if (perso.isAlive() && perso.getEnd() && perso.getTeam() == m_player)
         {
             nbEndTurn++;
         }

@@ -4,8 +4,8 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include "fonctions_fichier.h"
-#include "fonctions_SDL.h"
+#include "FileFunctions.h"
+#include "SDLFunctions.h"
 
 using namespace std;
 

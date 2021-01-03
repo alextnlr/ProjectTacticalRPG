@@ -2,7 +2,8 @@
 #define FONCTIONS_FICHIER_H_INCLUDED
 
 #include <string>
-
+#include <vector>
+#include <math.h>
 
 typedef struct s_map {
 	int lig; 

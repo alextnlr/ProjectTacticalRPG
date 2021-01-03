@@ -9,7 +9,6 @@ class Character
 {
 public:
     //Constructors
-    Character(int pv, int ac, vector<Spell> spells, string nom, int team);
     Character(int pv, int ac, vector<Spell> spells, string nom, int team, int x, int y);
     Character(Character const& copie);
 
@@ -68,6 +67,7 @@ private:
     int m_hp;
     int m_maxHp;
     int m_ac;
+    int m_mvt;
     int m_mana;
     string m_name;
     int m_pos[2];

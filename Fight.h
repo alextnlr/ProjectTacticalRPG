@@ -11,7 +11,7 @@ public:
     Fight();
     vector<Character> createCharacter(const MaptabP *map);
     int checkForVictory(vector<Character>& charac);
-    void move(vector<Character> &persos, int dir, const MaptabP *map);
+    void move(vector<Character> &characters, int dir, const MaptabP *map);
     MaptabP createColli(vector<Character> &persos, const MaptabP *map, int num);
     void select(vector<Character> &persos, int xmouse, int ymouse);
     void deselect(vector<Character>& persos);

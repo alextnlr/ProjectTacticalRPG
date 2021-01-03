@@ -17,7 +17,7 @@ int main(int argc, char** argv)
     Display display = Display();
     Fight fight = Fight();
     Terrain map = Terrain();
-
+    
     //We stock the map inside a local variable, even if it's contrary to the principles of OOP it's really easier for now
     MaptabP mapInt = map.getMapInt();
 
@@ -97,15 +97,19 @@ int main(int argc, char** argv)
                             end = true;
                         }
                         break;
+                    case SDLK_z:
                     case SDLK_UP:
                         fight.move(characters, 0, &mapInt);
                         break;
+                    case SDLK_s:
                     case SDLK_DOWN:
                         fight.move(characters, 1, &mapInt);
                         break;
+                    case SDLK_d:
                     case SDLK_RIGHT:
                         fight.move(characters, 2, &mapInt);
                         break;
+                    case SDLK_q:
                     case SDLK_LEFT:
                         fight.move(characters, 3, &mapInt);
                         break;
@@ -130,6 +134,7 @@ int main(int argc, char** argv)
                             fight.select(characters, xmouse, ymouse); //Select with the mouse (may change)
                             break;
                         case SDL_BUTTON_RIGHT:
+                            fight.cancel(characters);
                             break;
                         }
                     }

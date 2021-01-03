@@ -2,59 +2,32 @@
 
 using namespace std;
 
-Character::Character(int pv, int ac, vector<Spell> spells, string nom, int team)
-{
-    m_maxHp = pv;
-    m_hp = m_maxHp;
-    m_ac = ac;
-    m_spells.push_back(Spell());
-    for (Spell &spell : spells)
-    {
-        m_spells.push_back(spell);
-    }
-    m_team = team;
-    m_mana = 5;
-    m_name = nom;
-    m_pos[0] = 0;
-    m_pos[1] = 0;
-    m_hurt = false;
-    m_dgtAnim = 0;
-    m_frameIdle = 0;
-    m_state = -1;
-    m_wait = false;
-    m_facing = 0;
-    m_end = false;
-    m_selectedSpell = 0;
-    m_bonusAtt = 5;
-    m_bonusDmg = 0;
-    m_status = StatusList();
-}
-
 Character::Character(int pv, int ac , vector<Spell> spells, string nom, int team, int x, int y)
 {
-    m_maxHp = pv;
-    m_hp = m_maxHp;
-    m_ac = ac;
-    m_spells.push_back(Spell());
+    m_maxHp = pv; //The maximum amount of damage the character can take
+    m_hp = m_maxHp; //The current one
+    m_ac = ac; //The Armor Class of the character, to hit, a character must roll the ac of the target or higher
+    m_mvt = 6; //The number of unit the character can move in a turn
+    m_spells.push_back(Spell()); //The base Spell "spark"
     for (Spell& spell : spells)
     {
         m_spells.push_back(spell);
     }
-    m_team = team;
-    m_mana = 5;
-    m_name = nom;
-    m_pos[0] = x;
+    m_team = team; //Red or blue
+    m_mana = 5; //The ressource use to cast spell
+    m_name = nom; //The name will be displayed on the info card
+    m_pos[0] = x; //The current position in unit of the character
     m_pos[1] = y;
-    m_hurt = false;
-    m_dgtAnim = 0;
-    m_frameIdle = 0;
+    m_hurt = false; //To know if the program have to display a number above the character
+    m_dgtAnim = 0; //The number to display
+    m_frameIdle = 0; //The number he must display
     m_state = -1;
-    m_wait = false;
-    m_facing = 0;
-    m_end = false;
+    m_wait = false; //Cooldown of every action
+    m_facing = 0; //For the spells
+    m_end = false; //To know if the character can act
     m_selectedSpell = 0;
-    m_bonusAtt = 5;
-    m_bonusDmg = 0;
+    m_bonusAtt = 5; //The bonus to the dice roll
+    m_bonusDmg = 0; //The bonus to the damages of the spell used
     m_status = StatusList();
 }
 
@@ -63,6 +36,7 @@ Character::Character(Character const& copie)
     m_hp = copie.m_hp;
     m_maxHp = copie.m_maxHp;
     m_ac = copie.m_ac;
+    m_mvt = 6;
     m_spells = copie.m_spells;
     m_team = copie.m_team;
     m_mana = copie.m_mana;
@@ -84,9 +58,9 @@ Character::Character(Character const& copie)
 
 void Character::takeDamage(int dmg, int attackRoll, spellOutEffect effect, int power)
 {
-    if (attackRoll >= getAc() || dmg == 0)
+    if (attackRoll >= getAc() || dmg == 0) //Check if the attack roll is higher than the ac
     {
-        m_hp -= dmg;
+        m_hp -= dmg; //Reducing current hp
 
         if (m_hp < 0)
         {
@@ -94,7 +68,7 @@ void Character::takeDamage(int dmg, int attackRoll, spellOutEffect effect, int p
         }
         else
         {
-            activateOutEffect(effect, power);
+            activateOutEffect(effect, power); //If the attack spell has an effect
         }
 
         m_hurt = dmg;
@@ -106,9 +80,10 @@ void Character::attack(Character &cible, const MaptabP *map, int attackRoll)
     if (cible.isAlive())
     {
         MaptabP mapTemp = m_spells[m_selectedSpell].spellGrid(map, m_pos[0], m_pos[1])[m_facing];
-        if (mapTemp.mapInt[cible.m_pos[0]][cible.m_pos[1]] == 1)
+        if (mapTemp.mapInt[cible.m_pos[0]][cible.m_pos[1]] == 1) //Checking if the target is within the spell range
         {
-            cible.takeDamage(m_spells[m_selectedSpell].getDegats() + getBonusDamage(), attackRoll + getBonusAttack(), m_spells[m_selectedSpell].activateOutEffect(), m_spells[m_selectedSpell].getPowerOutEffect());
+            cible.takeDamage(m_spells[m_selectedSpell].getDegats() + getBonusDamage(), attackRoll + getBonusAttack(), 
+                m_spells[m_selectedSpell].activateOutEffect(), m_spells[m_selectedSpell].getPowerOutEffect());
         }
         deallocate(&mapTemp);
     }
@@ -136,7 +111,7 @@ int Character::getBonusDamage()
 
 TerrainEffect Character::getTerrain()
 {
-    return m_status.getTerrain();
+    return m_status.getTerrain(); //To know wich type of terrain unit he's on
 }
 
 bool* Character::getStatus()
@@ -144,7 +119,7 @@ bool* Character::getStatus()
     return m_status.getStatusActive();
 }
 
-void Character::activateInEffect()
+void Character::activateInEffect() //To activate the bonus effect of a spell
 {
     switch (m_spells[m_selectedSpell].activateInEffect())
     {
@@ -171,7 +146,7 @@ void Character::activateInEffect()
     }
 }
 
-void Character::activateOutEffect(spellOutEffect effect, int power)
+void Character::activateOutEffect(spellOutEffect effect, int power) //Same with the negative ones
 {
     switch (effect)
     {
@@ -195,7 +170,7 @@ void Character::activateOutEffect(spellOutEffect effect, int power)
     }
 }
 
-void Character::decreaseMana()
+void Character::decreaseMana() //Used to decrease the mana of the user depending on the spell selected
 {
     if (m_mana > 0)
     {
@@ -206,24 +181,24 @@ void Character::decreaseMana()
 SDL_Rect Character::getDmgDisplayer(int textW, int textH)
 {
 
-    SDL_Rect texte_pos;
+    SDL_Rect texte_pos; //This Rect will be used to know the position and size of the number
     texte_pos.x = m_pos[0]*64+16;
     texte_pos.y = m_pos[1]*64-m_dgtAnim;
     texte_pos.w = textW;
     texte_pos.h = textH;
 
-    if(m_dgtAnim > 20)
+    if(m_dgtAnim > 20) //After 20 phy-frames it reboot
     {
         m_hurt = false;
         m_dgtAnim = 0;
     } else {
-        m_dgtAnim++;
+        m_dgtAnim++; //Used to count the number of physical frames the animation has been on
     }
 
     return texte_pos;
 }
 
-void Character::setPosition(int x, int y)
+void Character::setPosition(int x, int y) //Used in tests
 {
     m_pos[0] = x;
     m_pos[1] = y;
@@ -231,45 +206,49 @@ void Character::setPosition(int x, int y)
 
 void Character::walk(int direction, MaptabP *map)
 {
-    switch(direction)
+    if (m_mvt > 0) //Check if there is any movement left
     {
-    case 0:
-        m_pos[1]--;
-        if(m_pos[1] < 0 || map->mapInt[m_pos[0]][m_pos[1]] < 0)
+        switch (direction)
         {
-            m_pos[1]++;
-        }
-        break;
-    case 1:
-        m_pos[1]++;
-        if(m_pos[1] > map->lig-1 || map->mapInt[m_pos[0]][m_pos[1]] < 0)
-        {
+        case 0: //Up
             m_pos[1]--;
-        }
-        break;
-    case 2:
-        m_pos[0]++;
-        if(m_pos[0] > map->col-1 || map->mapInt[m_pos[0]][m_pos[1]] < 0)
-        {
-            m_pos[0]--;
-        }
-        break;
-    case 3:
-        m_pos[0]--;
-        if(m_pos[0] < 0 || map->mapInt[m_pos[0]][m_pos[1]] < 0)
-        {
+            if (m_pos[1] < 0 || map->mapInt[m_pos[0]][m_pos[1]] < 0) //Checking for collisions
+            {
+                m_pos[1]++;
+            }
+            break;
+        case 1: //Down
+            m_pos[1]++;
+            if (m_pos[1] > map->lig - 1 || map->mapInt[m_pos[0]][m_pos[1]] < 0)
+            {
+                m_pos[1]--;
+            }
+            break;
+        case 2: //Right
             m_pos[0]++;
+            if (m_pos[0] > map->col - 1 || map->mapInt[m_pos[0]][m_pos[1]] < 0)
+            {
+                m_pos[0]--;
+            }
+            break;
+        case 3: //Left
+            m_pos[0]--;
+            if (m_pos[0] < 0 || map->mapInt[m_pos[0]][m_pos[1]] < 0)
+            {
+                m_pos[0]++;
+            }
+            break;
         }
-        break;
+        m_status.setTerrain(map->mapInt[m_pos[0]][m_pos[1]]); //Refresh the terrain
+        setState(direction + 1); //Set the direction for the animations
+        m_mvt--; //Decrease movement by one
+        setWait(5);
     }
-    m_status.setTerrain(map->mapInt[m_pos[0]][m_pos[1]]);
-    setState(direction + 1);
-    setWait(5);
 }
 
 void Character::checkTerrain(const MaptabP *map)
 {
-    m_status.setTerrain(map->mapInt[m_pos[0]][m_pos[1]]);
+    m_status.setTerrain(map->mapInt[m_pos[0]][m_pos[1]]); //Used to know the first unit he's on
 }
 
 void Character::updateStatus()
@@ -282,7 +261,7 @@ void Character::heal(int qteHeal)
 {
     m_hp += qteHeal;
 
-    if(m_hp > m_maxHp)
+    if(m_hp > m_maxHp) //Cannot go above the max
     {
         m_hp = m_maxHp;
     }
@@ -290,7 +269,7 @@ void Character::heal(int qteHeal)
 
 SDL_Rect Character::getCoord() const
 {
-    SDL_Rect rect;
+    SDL_Rect rect; //Return a Rect of the position in pixels with the size
     rect.x = m_pos[0]*64;
     rect.y = m_pos[1]*64;
     rect.w = 64;
@@ -359,20 +338,20 @@ int Character::getFacing() const
     return m_facing;
 }
 
-int Character::getFacingMax() const
+int Character::getFacingMax() const //Used to know how many possibilities for the spell - if there is more than 4
 {
     return m_spells[m_selectedSpell].getCycle();
 }
 
 string Character::getSpellName(int no)
 {
-    return m_spells[no].getName();
+    return m_spells[no].getName(); //For the display of the menu
 }
 
 void Character::recoverMana(int nbMana)
 {
     m_mana += nbMana;
-    if (m_mana > 5)
+    if (m_mana > 5) //Never more than 5
     {
         m_mana = 5;
     }
@@ -470,6 +449,7 @@ void Character::decreaseWait()
 void Character::newTurn()
 {
     m_end = false;
+    m_mvt = 6;
 }
 
 void Character::endTurn()
